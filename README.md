@@ -1,8 +1,8 @@
 # Cloudflare + Effect + Better Auth
 
-A full-stack authentication demo using [Better Auth](https://www.better-auth.com/) on [Cloudflare Workers](https://workers.cloudflare.com/) with [Effect](https://effect.website/) for type-safe functional patterns and [Cloudflare D1](https://developers.cloudflare.com/d1/) for the database.
+A learning project exploring [Better Auth](https://www.better-auth.com/) integration with [Cloudflare Workers](https://workers.cloudflare.com/), [Effect](https://effect.website/), and [Cloudflare D1](https://developers.cloudflare.com/d1/).
 
-**Live Demo:** <https://cloudflare-effect-better-auth-web.pages.dev>
+> **Note:** This is not production-ready code. It's a personal project I built to learn these technologies. Use at your own risk.
 
 ## Stack
 
