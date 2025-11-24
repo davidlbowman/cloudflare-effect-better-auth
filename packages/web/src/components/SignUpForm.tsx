@@ -1,9 +1,10 @@
-import { Cause, Effect, Exit, Option } from "effect";
+import { Effect, Exit } from "effect";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { apiClient } from "@/lib/api";
+import { getErrorMessage } from "@/lib/effect";
 
 export function SignUpForm() {
 	const [email, setEmail] = useState("");
@@ -11,55 +12,27 @@ export function SignUpForm() {
 	const [name, setName] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState("");
-	const [success, setSuccess] = useState(false);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setLoading(true);
 		setError("");
-		setSuccess(false);
 
 		const program = Effect.gen(function* () {
 			const client = yield* apiClient;
-			return yield* client.auth.signUp({
-				payload: { email, password, name },
-			});
+			return yield* client.auth.signUp({ payload: { email, password, name } });
 		});
 
 		const exit = await Effect.runPromiseExit(program);
 
 		Exit.match(exit, {
 			onFailure: (cause) => {
-				const maybeError = Cause.failureOption(cause);
-				if (Option.isSome(maybeError)) {
-					const err = maybeError.value;
-					console.error("Sign up error:", err);
-					setError(
-						"message" in err
-							? err.message
-							: "Failed to sign up. Please try again.",
-					);
-				} else {
-					console.error("Sign up error:", cause);
-					setError("Failed to sign up. Please try again.");
-				}
+				setError(getErrorMessage(cause, "Failed to sign up"));
 				setLoading(false);
 			},
 			onSuccess: (result) => {
-				console.log("Sign up successful:", result);
-
-				// Store the token if provided
-				if (result.token) {
-					localStorage.setItem("auth_token", result.token);
-				}
-
-				setSuccess(true);
-				setLoading(false);
-
-				// Redirect to dashboard after 1 second
-				setTimeout(() => {
-					window.location.href = "/dashboard";
-				}, 1000);
+				if (result.token) localStorage.setItem("auth_token", result.token);
+				window.location.href = "/dashboard";
 			},
 		});
 	};
@@ -117,12 +90,6 @@ export function SignUpForm() {
 				{error && (
 					<div className="p-3 text-sm text-red-500 bg-red-50 rounded-md border border-red-200">
 						{error}
-					</div>
-				)}
-
-				{success && (
-					<div className="p-3 text-sm text-green-500 bg-green-50 rounded-md border border-green-200">
-						Account created successfully! Redirecting...
 					</div>
 				)}
 
