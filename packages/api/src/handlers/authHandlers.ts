@@ -4,26 +4,21 @@
  * @module
  */
 import { HttpServerRequest, HttpServerResponse } from "@effect/platform";
-import { Effect, pipe, type Schema } from "effect";
-import type {
+import { Effect, pipe, Schema } from "effect";
+import {
 	AuthResponseSchema,
-	ForgetPasswordSchema,
-	ResetPasswordSchema,
-	SignInSchema,
-	SignUpSchema,
+	type ForgetPasswordPayload,
+	type ResetPasswordPayload,
+	type SignInPayload,
+	type SignUpPayload,
 	SuccessSchema,
-	UpdateUserSchema,
+	type UpdateUserPayload,
 } from "../../../shared/src/api/AuthApi";
 import { AuthError } from "../../../shared/src/errors/AuthError";
 import { AuthService } from "../services/AuthService";
 
-type SignUpPayload = Schema.Schema.Type<typeof SignUpSchema>;
-type SignInPayload = Schema.Schema.Type<typeof SignInSchema>;
-type UpdateUserPayload = Schema.Schema.Type<typeof UpdateUserSchema>;
-type ForgetPasswordPayload = Schema.Schema.Type<typeof ForgetPasswordSchema>;
-type ResetPasswordPayload = Schema.Schema.Type<typeof ResetPasswordSchema>;
-type AuthResponse = Schema.Schema.Type<typeof AuthResponseSchema>;
-type SuccessResponse = Schema.Schema.Type<typeof SuccessSchema>;
+const decodeAuthResponse = Schema.decodeUnknown(AuthResponseSchema);
+const decodeSuccessResponse = Schema.decodeUnknown(SuccessSchema);
 
 /**
  * Handles user registration with email and password.
@@ -62,8 +57,18 @@ export const handleSignUp = ({ payload }: { payload: SignUpPayload }) =>
 				),
 			);
 
+		const validatedResponse = yield* decodeAuthResponse(response).pipe(
+			Effect.mapError(
+				(parseError) =>
+					new AuthError({
+						message: `Invalid sign-up response: ${parseError.message}`,
+						context: { operation: "sign-up", email: payload.email },
+					}),
+			),
+		);
+
 		const setCookie = headers.get("set-cookie");
-		return yield* HttpServerResponse.json(response as AuthResponse).pipe(
+		return yield* HttpServerResponse.json(validatedResponse).pipe(
 			Effect.map((jsonResponse) =>
 				setCookie
 					? pipe(
@@ -118,8 +123,18 @@ export const handleSignIn = ({ payload }: { payload: SignInPayload }) =>
 				),
 			);
 
+		const validatedResponse = yield* decodeAuthResponse(response).pipe(
+			Effect.mapError(
+				(parseError) =>
+					new AuthError({
+						message: `Invalid sign-in response: ${parseError.message}`,
+						context: { operation: "sign-in", email: payload.email },
+					}),
+			),
+		);
+
 		const setCookie = headers.get("set-cookie");
-		return yield* HttpServerResponse.json(response as AuthResponse).pipe(
+		return yield* HttpServerResponse.json(validatedResponse).pipe(
 			Effect.map((jsonResponse) =>
 				setCookie
 					? pipe(
@@ -168,10 +183,20 @@ export const handleSignOut = () =>
 			),
 		);
 
-		const setCookie = headers.get("set-cookie");
-		return yield* HttpServerResponse.json({
+		const validatedResponse = yield* decodeSuccessResponse({
 			success: true,
-		} as SuccessResponse).pipe(
+		}).pipe(
+			Effect.mapError(
+				(parseError) =>
+					new AuthError({
+						message: `Invalid sign-out response: ${parseError.message}`,
+						context: { operation: "sign-out" },
+					}),
+			),
+		);
+
+		const setCookie = headers.get("set-cookie");
+		return yield* HttpServerResponse.json(validatedResponse).pipe(
 			Effect.map((jsonResponse) =>
 				setCookie
 					? pipe(
@@ -219,7 +244,15 @@ export const handleSession = () =>
 			),
 		);
 
-		return response as AuthResponse;
+		return yield* decodeAuthResponse(response).pipe(
+			Effect.mapError(
+				(parseError) =>
+					new AuthError({
+						message: `Invalid session response: ${parseError.message}`,
+						context: { operation: "get-session" },
+					}),
+			),
+		);
 	});
 
 /**
@@ -253,7 +286,15 @@ export const handleUpdateUser = ({ payload }: { payload: UpdateUserPayload }) =>
 			),
 		);
 
-		return response as AuthResponse;
+		return yield* decodeAuthResponse(response).pipe(
+			Effect.mapError(
+				(parseError) =>
+					new AuthError({
+						message: `Invalid update-user response: ${parseError.message}`,
+						context: { operation: "update-user", name: payload.name },
+					}),
+			),
+		);
 	});
 
 /**
@@ -292,7 +333,15 @@ export const handleForgetPassword = ({
 			),
 		);
 
-		return { success: true } as SuccessResponse;
+		return yield* decodeSuccessResponse({ success: true }).pipe(
+			Effect.mapError(
+				(parseError) =>
+					new AuthError({
+						message: `Invalid forget-password response: ${parseError.message}`,
+						context: { operation: "forget-password", email: payload.email },
+					}),
+			),
+		);
 	});
 
 /**
@@ -331,5 +380,13 @@ export const handleResetPassword = ({
 			),
 		);
 
-		return { success: true } as SuccessResponse;
+		return yield* decodeSuccessResponse({ success: true }).pipe(
+			Effect.mapError(
+				(parseError) =>
+					new AuthError({
+						message: `Invalid reset-password response: ${parseError.message}`,
+						context: { operation: "reset-password" },
+					}),
+			),
+		);
 	});

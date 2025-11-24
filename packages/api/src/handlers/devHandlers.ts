@@ -8,13 +8,13 @@
  */
 import { HttpServerResponse } from "@effect/platform";
 import { desc } from "drizzle-orm";
-import { Effect, type Schema } from "effect";
-import type { TokensResponseSchema } from "../../../shared/src/api/AuthApi";
+import { Effect, Schema } from "effect";
+import { TokensResponseSchema } from "../../../shared/src/api/AuthApi";
 import { AuthError } from "../../../shared/src/errors/AuthError";
 import { verification } from "../db/schema";
 import { DrizzleService } from "../services/DrizzleService";
 
-type TokensResponse = Schema.Schema.Type<typeof TokensResponseSchema>;
+const decodeTokensResponse = Schema.decodeUnknown(TokensResponseSchema);
 
 /**
  * Lists recent verification tokens from the database.
@@ -48,14 +48,24 @@ export const handleListTokens = () =>
 			),
 		);
 
-		return yield* HttpServerResponse.json({
+		const validatedResponse = yield* decodeTokensResponse({
 			tokens: tokens.map((token) => ({
 				identifier: token.identifier,
 				value: token.value,
 				expiresAt: token.expiresAt,
 				createdAt: token.createdAt,
 			})),
-		} as TokensResponse).pipe(
+		}).pipe(
+			Effect.mapError(
+				(parseError) =>
+					new AuthError({
+						message: `Invalid list-tokens response: ${parseError.message}`,
+						context: { operation: "list-tokens" },
+					}),
+			),
+		);
+
+		return yield* HttpServerResponse.json(validatedResponse).pipe(
 			Effect.mapError(
 				() =>
 					new AuthError({

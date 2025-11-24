@@ -27,6 +27,17 @@ export const ResetPasswordSchema = Schema.Struct({
 	password: Schema.String,
 });
 
+// Request Types
+export type SignUpPayload = Schema.Schema.Type<typeof SignUpSchema>;
+export type SignInPayload = Schema.Schema.Type<typeof SignInSchema>;
+export type UpdateUserPayload = Schema.Schema.Type<typeof UpdateUserSchema>;
+export type ForgetPasswordPayload = Schema.Schema.Type<
+	typeof ForgetPasswordSchema
+>;
+export type ResetPasswordPayload = Schema.Schema.Type<
+	typeof ResetPasswordSchema
+>;
+
 // Response Schemas
 export const UserSchema = Schema.Struct({
 	id: Schema.String,
