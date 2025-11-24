@@ -61,10 +61,20 @@ export const AuthLive = Layer.effect(
 			}),
 			secret: Redacted.value(config.auth.secret),
 			baseURL: config.auth.url,
+			trustedOrigins: [
+				"http://localhost:4321",
+				"https://cloudflare-effect-better-auth-web.pages.dev",
+			],
+			advanced: {
+				defaultCookieAttributes: {
+					sameSite: "none",
+					secure: true,
+					partitioned: true,
+				},
+			},
 			emailAndPassword: {
 				enabled: true,
 				requireEmailVerification: false,
-				/** Logs password reset links to console for local development */
 				sendResetPassword: async ({ user, url }) => {
 					console.log(`[DEV] Password reset for ${user.email}: ${url}`);
 				},

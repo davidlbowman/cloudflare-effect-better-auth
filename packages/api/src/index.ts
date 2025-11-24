@@ -40,7 +40,10 @@ export default {
 		const AppLayer = Layer.mergeAll(
 			buildApiLive(env.DB),
 			HttpApiBuilder.middlewareCors({
-				allowedOrigins: ["http://localhost:4321"],
+				allowedOrigins: [
+					"http://localhost:4321",
+					"https://cloudflare-effect-better-auth-web.pages.dev",
+				],
 				credentials: true,
 			}),
 			HttpServer.layerContext,
