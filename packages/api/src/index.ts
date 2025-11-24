@@ -19,7 +19,10 @@ export default {
 		// Build the complete layer stack with DB dependency and CORS middleware
 		const AppLayer = Layer.mergeAll(
 			buildApiLive(env.DB),
-			HttpApiBuilder.middlewareCors(),
+			HttpApiBuilder.middlewareCors({
+			allowedOrigins: ["http://localhost:4321"], // Frontend origin
+			credentials: true, // Allow credentials (cookies) to be sent
+		}),
 			HttpServer.layerContext,
 		);
 

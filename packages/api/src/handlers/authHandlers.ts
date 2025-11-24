@@ -1,5 +1,5 @@
-import { HttpServerRequest } from "@effect/platform";
-import { Effect, Schema } from "effect";
+import { HttpServerRequest, HttpServerResponse } from "@effect/platform";
+import { Effect, Schema, pipe } from "effect";
 import { AuthService } from "../services/AuthService";
 import { AuthError } from "../../../shared/src/errors/AuthError";
 import type {
@@ -25,25 +25,39 @@ export const handleSignUp = ({ payload }: { payload: SignUpPayload }) =>
 		const auth = yield* AuthService;
 		const request = yield* HttpServerRequest.HttpServerRequest;
 
-		const response: unknown = yield* Effect.tryPromise(() =>
-			auth.api.signUpEmail({
-				body: {
-					email: payload.email,
-					password: payload.password,
-					name: payload.name,
-				},
-				headers: request.headers,
-			}),
-		).pipe(
-			Effect.mapError(
-				(error) =>
-					new AuthError({
-						message: error instanceof Error ? error.message : String(error),
-					}),
-			),
-		);
+		const { headers, response }: { headers: Headers; response: unknown } =
+			yield* Effect.tryPromise(() =>
+				auth.api.signUpEmail({
+					body: {
+						email: payload.email,
+						password: payload.password,
+						name: payload.name,
+					},
+					headers: request.headers,
+					returnHeaders: true,
+				}),
+			).pipe(
+				Effect.mapError(
+					(error) =>
+						new AuthError({
+							message: error instanceof Error ? error.message : String(error),
+						}),
+				),
+			);
 
-		return response as AuthResponse;
+		// Create JSON response and forward Set-Cookie headers
+		const setCookie = headers.get("set-cookie");
+		return yield* HttpServerResponse.json(response as AuthResponse).pipe(
+			Effect.map((jsonResponse) =>
+				setCookie
+					? pipe(
+							jsonResponse,
+							HttpServerResponse.setHeader("set-cookie", setCookie),
+					  )
+					: jsonResponse,
+			),
+			Effect.mapError(() => new AuthError({ message: "Failed to create response" })),
+		);
 	});
 
 export const handleSignIn = ({ payload }: { payload: SignInPayload }) =>
@@ -51,24 +65,38 @@ export const handleSignIn = ({ payload }: { payload: SignInPayload }) =>
 		const auth = yield* AuthService;
 		const request = yield* HttpServerRequest.HttpServerRequest;
 
-		const response: unknown = yield* Effect.tryPromise(() =>
-			auth.api.signInEmail({
-				body: {
-					email: payload.email,
-					password: payload.password,
-				},
-				headers: request.headers,
-			}),
-		).pipe(
-			Effect.mapError(
-				(error) =>
-					new AuthError({
-						message: error instanceof Error ? error.message : String(error),
-					}),
-			),
-		);
+		const { headers, response }: { headers: Headers; response: unknown } =
+			yield* Effect.tryPromise(() =>
+				auth.api.signInEmail({
+					body: {
+						email: payload.email,
+						password: payload.password,
+					},
+					headers: request.headers,
+					returnHeaders: true,
+				}),
+			).pipe(
+				Effect.mapError(
+					(error) =>
+						new AuthError({
+							message: error instanceof Error ? error.message : String(error),
+						}),
+				),
+			);
 
-		return response as AuthResponse;
+		// Create JSON response and forward Set-Cookie headers
+		const setCookie = headers.get("set-cookie");
+		return yield* HttpServerResponse.json(response as AuthResponse).pipe(
+			Effect.map((jsonResponse) =>
+				setCookie
+					? pipe(
+							jsonResponse,
+							HttpServerResponse.setHeader("set-cookie", setCookie),
+					  )
+					: jsonResponse,
+			),
+			Effect.mapError(() => new AuthError({ message: "Failed to create response" })),
+		);
 	});
 
 export const handleSignOut = () =>
@@ -76,9 +104,10 @@ export const handleSignOut = () =>
 		const auth = yield* AuthService;
 		const request = yield* HttpServerRequest.HttpServerRequest;
 
-		yield* Effect.tryPromise(() =>
+		const { headers } = yield* Effect.tryPromise(() =>
 			auth.api.signOut({
 				headers: request.headers,
+				returnHeaders: true,
 			}),
 		).pipe(
 			Effect.mapError(
@@ -89,7 +118,21 @@ export const handleSignOut = () =>
 			),
 		);
 
-		return { success: true } as SuccessResponse;
+		// Create JSON response and forward Set-Cookie headers
+		const setCookie = headers.get("set-cookie");
+		return yield* HttpServerResponse.json({
+			success: true,
+		} as SuccessResponse).pipe(
+			Effect.map((jsonResponse) =>
+				setCookie
+					? pipe(
+							jsonResponse,
+							HttpServerResponse.setHeader("set-cookie", setCookie),
+					  )
+					: jsonResponse,
+			),
+			Effect.mapError(() => new AuthError({ message: "Failed to create response" })),
+		);
 	});
 
 export const handleSession = () =>
