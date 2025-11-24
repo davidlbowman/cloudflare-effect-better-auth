@@ -57,6 +57,7 @@ export const handleSignUp = ({ payload }: { payload: SignUpPayload }) =>
 					(error) =>
 						new AuthError({
 							message: error instanceof Error ? error.message : String(error),
+							context: { operation: "sign-up", email: payload.email },
 						}),
 				),
 			);
@@ -72,7 +73,11 @@ export const handleSignUp = ({ payload }: { payload: SignUpPayload }) =>
 					: jsonResponse,
 			),
 			Effect.mapError(
-				() => new AuthError({ message: "Failed to create response" }),
+				() =>
+					new AuthError({
+						message: "Failed to create sign-up response",
+						context: { operation: "sign-up", email: payload.email },
+					}),
 			),
 		);
 	});
@@ -108,6 +113,7 @@ export const handleSignIn = ({ payload }: { payload: SignInPayload }) =>
 					(error) =>
 						new AuthError({
 							message: error instanceof Error ? error.message : String(error),
+							context: { operation: "sign-in", email: payload.email },
 						}),
 				),
 			);
@@ -123,7 +129,11 @@ export const handleSignIn = ({ payload }: { payload: SignInPayload }) =>
 					: jsonResponse,
 			),
 			Effect.mapError(
-				() => new AuthError({ message: "Failed to create response" }),
+				() =>
+					new AuthError({
+						message: "Failed to create sign-in response",
+						context: { operation: "sign-in", email: payload.email },
+					}),
 			),
 		);
 	});
@@ -153,6 +163,7 @@ export const handleSignOut = () =>
 				(error) =>
 					new AuthError({
 						message: error instanceof Error ? error.message : String(error),
+						context: { operation: "sign-out" },
 					}),
 			),
 		);
@@ -170,7 +181,11 @@ export const handleSignOut = () =>
 					: jsonResponse,
 			),
 			Effect.mapError(
-				() => new AuthError({ message: "Failed to create response" }),
+				() =>
+					new AuthError({
+						message: "Failed to create sign-out response",
+						context: { operation: "sign-out" },
+					}),
 			),
 		);
 	});
@@ -199,6 +214,7 @@ export const handleSession = () =>
 				(error) =>
 					new AuthError({
 						message: error instanceof Error ? error.message : String(error),
+						context: { operation: "get-session" },
 					}),
 			),
 		);
@@ -232,6 +248,7 @@ export const handleUpdateUser = ({ payload }: { payload: UpdateUserPayload }) =>
 				(error) =>
 					new AuthError({
 						message: error instanceof Error ? error.message : String(error),
+						context: { operation: "update-user", name: payload.name },
 					}),
 			),
 		);
@@ -270,6 +287,7 @@ export const handleForgetPassword = ({
 				(error) =>
 					new AuthError({
 						message: error instanceof Error ? error.message : String(error),
+						context: { operation: "forget-password", email: payload.email },
 					}),
 			),
 		);
@@ -308,6 +326,7 @@ export const handleResetPassword = ({
 				(error) =>
 					new AuthError({
 						message: error instanceof Error ? error.message : String(error),
+						context: { operation: "reset-password" },
 					}),
 			),
 		);

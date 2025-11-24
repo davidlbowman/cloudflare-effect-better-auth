@@ -43,6 +43,7 @@ export const handleListTokens = () =>
 					new AuthError({
 						message:
 							error instanceof Error ? error.message : "Failed to fetch tokens",
+						context: { operation: "list-tokens" },
 					}),
 			),
 		);
@@ -56,7 +57,11 @@ export const handleListTokens = () =>
 			})),
 		} as TokensResponse).pipe(
 			Effect.mapError(
-				() => new AuthError({ message: "Failed to create response" }),
+				() =>
+					new AuthError({
+						message: "Failed to create list-tokens response",
+						context: { operation: "list-tokens" },
+					}),
 			),
 		);
 	});
