@@ -1,34 +1,46 @@
-import { Effect, Exit } from "effect";
-import { useState } from "react";
+import { effectTsResolver } from "@hookform/resolvers/effect-ts";
+import { Effect, Exit, Schema } from "effect";
+import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
+import {
+	Form,
+	FormControl,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { apiClient } from "@/lib/api";
 import { getErrorMessage } from "@/lib/effect";
 
+const SignUpFormSchema = Schema.Struct({
+	name: Schema.String,
+	email: Schema.String,
+	password: Schema.String,
+});
+
+type FormValues = Schema.Schema.Type<typeof SignUpFormSchema>;
+
 export function SignUpForm() {
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
-	const [name, setName] = useState("");
-	const [loading, setLoading] = useState(false);
-	const [error, setError] = useState("");
+	const form = useForm<FormValues>({
+		resolver: effectTsResolver(SignUpFormSchema),
+		defaultValues: { name: "", email: "", password: "" },
+	});
 
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-		setLoading(true);
-		setError("");
-
+	const onSubmit = async (values: FormValues) => {
 		const program = Effect.gen(function* () {
 			const client = yield* apiClient;
-			return yield* client.auth.signUp({ payload: { email, password, name } });
+			return yield* client.auth.signUp({ payload: values });
 		});
 
 		const exit = await Effect.runPromiseExit(program);
 
 		Exit.match(exit, {
 			onFailure: (cause) => {
-				setError(getErrorMessage(cause, "Failed to sign up"));
-				setLoading(false);
+				form.setError("root", {
+					message: getErrorMessage(cause, "Failed to sign up"),
+				});
 			},
 			onSuccess: (result) => {
 				if (result.token) localStorage.setItem("auth_token", result.token);
@@ -46,57 +58,69 @@ export function SignUpForm() {
 				</p>
 			</div>
 
-			<form onSubmit={handleSubmit} className="space-y-4">
-				<div className="space-y-2">
-					<Label htmlFor="name">Name</Label>
-					<Input
-						id="name"
-						type="text"
-						placeholder="John Doe"
-						value={name}
-						onChange={(e) => setName(e.target.value)}
-						required
-						disabled={loading}
+			<Form {...form}>
+				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+					<FormField
+						control={form.control}
+						name="name"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Name</FormLabel>
+								<FormControl>
+									<Input placeholder="John Doe" {...field} />
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
 					/>
-				</div>
 
-				<div className="space-y-2">
-					<Label htmlFor="email">Email</Label>
-					<Input
-						id="email"
-						type="email"
-						placeholder="name@example.com"
-						value={email}
-						onChange={(e) => setEmail(e.target.value)}
-						required
-						disabled={loading}
+					<FormField
+						control={form.control}
+						name="email"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Email</FormLabel>
+								<FormControl>
+									<Input
+										type="email"
+										placeholder="name@example.com"
+										{...field}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
 					/>
-				</div>
 
-				<div className="space-y-2">
-					<Label htmlFor="password">Password</Label>
-					<Input
-						id="password"
-						type="password"
-						placeholder="••••••••"
-						value={password}
-						onChange={(e) => setPassword(e.target.value)}
-						required
-						disabled={loading}
-						minLength={8}
+					<FormField
+						control={form.control}
+						name="password"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Password</FormLabel>
+								<FormControl>
+									<Input type="password" placeholder="••••••••" {...field} />
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
 					/>
-				</div>
 
-				{error && (
-					<div className="p-3 text-sm text-red-500 bg-red-50 rounded-md border border-red-200">
-						{error}
-					</div>
-				)}
+					{form.formState.errors.root && (
+						<div className="p-3 text-sm text-red-500 bg-red-50 rounded-md border border-red-200">
+							{form.formState.errors.root.message}
+						</div>
+					)}
 
-				<Button type="submit" className="w-full" disabled={loading}>
-					{loading ? "Creating account..." : "Sign Up"}
-				</Button>
-			</form>
+					<Button
+						type="submit"
+						className="w-full"
+						disabled={form.formState.isSubmitting}
+					>
+						{form.formState.isSubmitting ? "Creating account..." : "Sign Up"}
+					</Button>
+				</form>
+			</Form>
 
 			<div className="text-center text-sm">
 				Already have an account?{" "}

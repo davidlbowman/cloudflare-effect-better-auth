@@ -1,35 +1,49 @@
-import { Effect, Exit } from "effect";
+import { effectTsResolver } from "@hookform/resolvers/effect-ts";
+import { Effect, Exit, Schema } from "effect";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
+import {
+	Form,
+	FormControl,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { apiClient } from "@/lib/api";
 import { getErrorMessage } from "@/lib/effect";
 
+const SignInFormSchema = Schema.Struct({
+	email: Schema.String,
+	password: Schema.String,
+});
+
+type FormValues = Schema.Schema.Type<typeof SignInFormSchema>;
+
 export function SignInForm() {
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
-	const [loading, setLoading] = useState(false);
-	const [error, setError] = useState("");
 	const [resetting, setResetting] = useState(false);
 	const [resetSuccess, setResetSuccess] = useState(false);
 
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-		setLoading(true);
-		setError("");
+	const form = useForm<FormValues>({
+		resolver: effectTsResolver(SignInFormSchema),
+		defaultValues: { email: "", password: "" },
+	});
 
+	const onSubmit = async (values: FormValues) => {
 		const program = Effect.gen(function* () {
 			const client = yield* apiClient;
-			return yield* client.auth.signIn({ payload: { email, password } });
+			return yield* client.auth.signIn({ payload: values });
 		});
 
 		const exit = await Effect.runPromiseExit(program);
 
 		Exit.match(exit, {
 			onFailure: (cause) => {
-				setError(getErrorMessage(cause, "Failed to sign in"));
-				setLoading(false);
+				form.setError("root", {
+					message: getErrorMessage(cause, "Failed to sign in"),
+				});
 			},
 			onSuccess: (result) => {
 				if (result.token) localStorage.setItem("auth_token", result.token);
@@ -39,14 +53,15 @@ export function SignInForm() {
 	};
 
 	const handleResetPassword = async () => {
+		const email = form.getValues("email");
 		if (!email) {
-			setError("Please enter your email first");
+			form.setError("email", { message: "Please enter your email first" });
 			return;
 		}
 
 		setResetting(true);
-		setError("");
 		setResetSuccess(false);
+		form.clearErrors("root");
 
 		const program = Effect.gen(function* () {
 			const client = yield* apiClient;
@@ -72,12 +87,14 @@ export function SignInForm() {
 
 		Exit.match(exit, {
 			onFailure: (cause) => {
-				setError(getErrorMessage(cause, "Failed to reset password"));
+				form.setError("root", {
+					message: getErrorMessage(cause, "Failed to reset password"),
+				});
 				setResetting(false);
 			},
 			onSuccess: () => {
 				setResetSuccess(true);
-				setPassword("Reset!1234");
+				form.setValue("password", "Reset!1234");
 				setResetting(false);
 			},
 		});
@@ -92,60 +109,71 @@ export function SignInForm() {
 				</p>
 			</div>
 
-			<form onSubmit={handleSubmit} className="space-y-4">
-				<div className="space-y-2">
-					<Label htmlFor="email">Email</Label>
-					<Input
-						id="email"
-						type="email"
-						placeholder="name@example.com"
-						value={email}
-						onChange={(e) => setEmail(e.target.value)}
-						required
-						disabled={loading}
+			<Form {...form}>
+				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+					<FormField
+						control={form.control}
+						name="email"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Email</FormLabel>
+								<FormControl>
+									<Input
+										type="email"
+										placeholder="name@example.com"
+										{...field}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
 					/>
-				</div>
 
-				<div className="space-y-2">
-					<div className="flex items-center justify-between">
-						<Label htmlFor="password">Password</Label>
-						<button
-							type="button"
-							onClick={handleResetPassword}
-							disabled={resetting || !email}
-							className="text-xs text-primary hover:underline disabled:opacity-50"
-						>
-							{resetting ? "Resetting..." : "Forgot password?"}
-						</button>
-					</div>
-					<Input
-						id="password"
-						type="password"
-						placeholder="••••••••"
-						value={password}
-						onChange={(e) => setPassword(e.target.value)}
-						required
-						disabled={loading}
-						minLength={8}
+					<FormField
+						control={form.control}
+						name="password"
+						render={({ field }) => (
+							<FormItem>
+								<div className="flex items-center justify-between">
+									<FormLabel>Password</FormLabel>
+									<button
+										type="button"
+										onClick={handleResetPassword}
+										disabled={resetting}
+										className="text-xs text-primary hover:underline disabled:opacity-50"
+									>
+										{resetting ? "Resetting..." : "Forgot password?"}
+									</button>
+								</div>
+								<FormControl>
+									<Input type="password" placeholder="••••••••" {...field} />
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
 					/>
-				</div>
 
-				{error && (
-					<div className="p-3 text-sm text-red-500 bg-red-50 rounded-md border border-red-200">
-						{error}
-					</div>
-				)}
+					{form.formState.errors.root && (
+						<div className="p-3 text-sm text-red-500 bg-red-50 rounded-md border border-red-200">
+							{form.formState.errors.root.message}
+						</div>
+					)}
 
-				{resetSuccess && (
-					<div className="p-3 text-sm text-green-500 bg-green-50 rounded-md border border-green-200">
-						Password reset to: Reset!1234
-					</div>
-				)}
+					{resetSuccess && (
+						<div className="p-3 text-sm text-green-500 bg-green-50 rounded-md border border-green-200">
+							Password reset to: Reset!1234
+						</div>
+					)}
 
-				<Button type="submit" className="w-full" disabled={loading}>
-					{loading ? "Signing in..." : "Sign In"}
-				</Button>
-			</form>
+					<Button
+						type="submit"
+						className="w-full"
+						disabled={form.formState.isSubmitting}
+					>
+						{form.formState.isSubmitting ? "Signing in..." : "Sign In"}
+					</Button>
+				</form>
+			</Form>
 
 			<div className="text-center text-sm">
 				Don't have an account?{" "}
