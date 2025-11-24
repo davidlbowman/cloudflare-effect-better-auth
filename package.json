@@ -25,6 +25,7 @@
 		"@astrojs/react": "^4.4.2",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
+		"better-auth": "^1.4.1",
 		"react": "^19.2.0",
 		"react-dom": "^19.2.0"
 	}
