@@ -14,7 +14,7 @@ type TokensResponse = Schema.Schema.Type<typeof TokensResponseSchema>;
  */
 export const handleListTokens = () =>
 	Effect.gen(function* () {
-		const { db } = yield* DrizzleService;
+		const db = yield* DrizzleService;
 
 		// Get the 10 most recent tokens
 		const tokens = yield* Effect.tryPromise(() =>

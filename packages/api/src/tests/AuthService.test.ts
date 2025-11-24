@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { ConfigProvider, Effect, Layer } from "effect";
-import { AuthDev, AuthService } from "../services/AuthService";
+import { AuthLive, AuthService } from "../services/AuthService";
 import { ConfigService } from "../services/ConfigService";
 import { DrizzleTest } from "../services/DrizzleService";
 
@@ -13,7 +13,7 @@ describe("AuthService", () => {
 			]),
 		);
 
-		const testLayer = AuthDev.pipe(
+		const testLayer = AuthLive.pipe(
 			Layer.provide(DrizzleTest),
 			Layer.provide(ConfigService.Default),
 		);

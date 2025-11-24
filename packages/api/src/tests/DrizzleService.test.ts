@@ -5,13 +5,12 @@ import { DrizzleService, DrizzleTest } from "../services/DrizzleService";
 describe("DrizzleService", () => {
 	describe("DrizzleTest", () => {
 		test("should provide empty database layer", async () => {
-			const orm = await DrizzleService.pipe(
+			const db = await DrizzleService.pipe(
 				Effect.provide(DrizzleTest),
 				Effect.runPromise,
 			);
 
-			expect(orm).toBeDefined();
-			expect(orm.db).toBeDefined();
+			expect(db).toBeDefined();
 		});
 	});
 });

@@ -13,13 +13,13 @@ export class AuthService extends Context.Tag("AuthService")<
 >() {}
 
 /**
- * AuthDev - Create AuthService layer with Better Auth
+ * AuthLive - Create AuthService layer with Better Auth
  */
-export const AuthDev = Layer.effect(
+export const AuthLive = Layer.effect(
 	AuthService,
 	Effect.gen(function* () {
 		const config = yield* ConfigService;
-		const { db } = yield* DrizzleService;
+		const db = yield* DrizzleService;
 
 		return betterAuth({
 			database: drizzleAdapter(db, {
