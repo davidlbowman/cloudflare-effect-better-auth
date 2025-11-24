@@ -1,4 +1,4 @@
-import { Effect } from "effect";
+import { Cause, Effect, Exit, Option } from "effect";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,39 +19,49 @@ export function SignUpForm() {
 		setError("");
 		setSuccess(false);
 
-		try {
-			const program = Effect.gen(function* () {
-				const client = yield* apiClient;
-				return yield* client.auth.signUp({
-					payload: { email, password, name },
-				});
+		const program = Effect.gen(function* () {
+			const client = yield* apiClient;
+			return yield* client.auth.signUp({
+				payload: { email, password, name },
 			});
+		});
 
-			const result = await Effect.runPromise(program);
+		const exit = await Effect.runPromiseExit(program);
 
-			console.log("Sign up successful:", result);
+		Exit.match(exit, {
+			onFailure: (cause) => {
+				const maybeError = Cause.failureOption(cause);
+				if (Option.isSome(maybeError)) {
+					const err = maybeError.value;
+					console.error("Sign up error:", err);
+					setError(
+						"message" in err
+							? err.message
+							: "Failed to sign up. Please try again.",
+					);
+				} else {
+					console.error("Sign up error:", cause);
+					setError("Failed to sign up. Please try again.");
+				}
+				setLoading(false);
+			},
+			onSuccess: (result) => {
+				console.log("Sign up successful:", result);
 
-			// Store the token if provided
-			if (result.token) {
-				localStorage.setItem("auth_token", result.token);
-			}
+				// Store the token if provided
+				if (result.token) {
+					localStorage.setItem("auth_token", result.token);
+				}
 
-			setSuccess(true);
+				setSuccess(true);
+				setLoading(false);
 
-			// Redirect to dashboard after 1 second
-			setTimeout(() => {
-				window.location.href = "/dashboard";
-			}, 1000);
-		} catch (err) {
-			console.error("Sign up error:", err);
-			setError(
-				err instanceof Error
-					? err.message
-					: "Failed to sign up. Please try again.",
-			);
-		} finally {
-			setLoading(false);
-		}
+				// Redirect to dashboard after 1 second
+				setTimeout(() => {
+					window.location.href = "/dashboard";
+				}, 1000);
+			},
+		});
 	};
 
 	return (

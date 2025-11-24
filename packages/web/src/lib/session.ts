@@ -1,4 +1,4 @@
-import { Effect } from "effect";
+import { Cause, Effect, Exit, Option } from "effect";
 import { apiClient } from "./api";
 
 /**
@@ -6,18 +6,23 @@ import { apiClient } from "./api";
  * Returns the user and session data if authenticated
  */
 export async function getSession() {
-	try {
-		const program = Effect.gen(function* () {
-			const client = yield* apiClient;
-			return yield* client.auth.session();
-		});
+	const program = Effect.gen(function* () {
+		const client = yield* apiClient;
+		return yield* client.auth.session();
+	});
 
-		const result = await Effect.runPromise(program);
-		return result;
-	} catch (error) {
-		console.error("Session check failed:", error);
-		return null;
-	}
+	const exit = await Effect.runPromiseExit(program);
+
+	return Exit.match(exit, {
+		onFailure: (cause) => {
+			const maybeError = Cause.failureOption(cause);
+			if (Option.isSome(maybeError)) {
+				console.error("Session check failed:", maybeError.value);
+			}
+			return null;
+		},
+		onSuccess: (result) => result,
+	});
 }
 
 /**
@@ -32,21 +37,26 @@ export async function isAuthenticated(): Promise<boolean> {
  * Sign out the user
  */
 export async function signOut() {
-	try {
-		const program = Effect.gen(function* () {
-			const client = yield* apiClient;
-			return yield* client.auth.signOut();
-		});
+	const program = Effect.gen(function* () {
+		const client = yield* apiClient;
+		return yield* client.auth.signOut();
+	});
 
-		await Effect.runPromise(program);
+	const exit = await Effect.runPromiseExit(program);
 
-		// Clear stored token
-		localStorage.removeItem("auth_token");
+	return Exit.match(exit, {
+		onFailure: (cause) => {
+			const maybeError = Cause.failureOption(cause);
+			const error = Option.isSome(maybeError) ? maybeError.value : cause;
+			console.error("Sign out failed:", error);
+			throw error;
+		},
+		onSuccess: () => {
+			// Clear stored token
+			localStorage.removeItem("auth_token");
 
-		// Redirect to home
-		window.location.href = "/";
-	} catch (error) {
-		console.error("Sign out failed:", error);
-		throw error;
-	}
+			// Redirect to home
+			window.location.href = "/";
+		},
+	});
 }

@@ -38,6 +38,17 @@ export type ResetPasswordPayload = Schema.Schema.Type<
 	typeof ResetPasswordSchema
 >;
 
+// Schema that accepts either Date object or ISO string
+// Server returns Date objects, but JSON serialization converts to strings for client
+const DateOrString = Schema.transform(
+	Schema.Union(Schema.DateFromSelf, Schema.String),
+	Schema.DateFromSelf,
+	{
+		decode: (input) => (input instanceof Date ? input : new Date(input)),
+		encode: (date) => date,
+	},
+);
+
 // Response Schemas
 export const UserSchema = Schema.Struct({
 	id: Schema.String,
@@ -45,13 +56,13 @@ export const UserSchema = Schema.Struct({
 	name: Schema.String,
 	emailVerified: Schema.Boolean,
 	image: Schema.NullOr(Schema.String),
-	createdAt: Schema.Date,
-	updatedAt: Schema.Date,
+	createdAt: DateOrString,
+	updatedAt: DateOrString,
 });
 
 export const SessionSchema = Schema.Struct({
 	id: Schema.String,
-	expiresAt: Schema.Date,
+	expiresAt: DateOrString,
 	token: Schema.String,
 	ipAddress: Schema.NullOr(Schema.String),
 	userAgent: Schema.NullOr(Schema.String),
@@ -73,8 +84,8 @@ export const SuccessSchema = Schema.Struct({
 export const TokenSchema = Schema.Struct({
 	identifier: Schema.String,
 	value: Schema.String,
-	expiresAt: Schema.Date,
-	createdAt: Schema.Date,
+	expiresAt: DateOrString,
+	createdAt: DateOrString,
 });
 
 export const TokensResponseSchema = Schema.Struct({

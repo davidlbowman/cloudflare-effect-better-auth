@@ -1,9 +1,24 @@
-import { Effect } from "effect";
+import { Cause, Effect, Exit, Option } from "effect";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { apiClient } from "@/lib/api";
+
+/** Extract error message from Effect cause */
+const getErrorMessage = (
+	cause: Cause.Cause<unknown>,
+	fallback: string,
+): string => {
+	const maybeError = Cause.failureOption(cause);
+	if (Option.isSome(maybeError)) {
+		const err = maybeError.value;
+		return typeof err === "object" && err !== null && "message" in err
+			? String(err.message)
+			: fallback;
+	}
+	return fallback;
+};
 
 export function SignInForm() {
 	const [email, setEmail] = useState("");
@@ -18,35 +33,35 @@ export function SignInForm() {
 		setLoading(true);
 		setError("");
 
-		try {
-			const program = Effect.gen(function* () {
-				const client = yield* apiClient;
-				return yield* client.auth.signIn({
-					payload: { email, password },
-				});
+		const program = Effect.gen(function* () {
+			const client = yield* apiClient;
+			return yield* client.auth.signIn({
+				payload: { email, password },
 			});
+		});
 
-			const result = await Effect.runPromise(program);
+		const exit = await Effect.runPromiseExit(program);
 
-			console.log("Sign in successful:", result);
+		Exit.match(exit, {
+			onFailure: (cause) => {
+				console.error("Sign in error:", cause);
+				setError(
+					getErrorMessage(cause, "Failed to sign in. Please try again."),
+				);
+				setLoading(false);
+			},
+			onSuccess: (result) => {
+				console.log("Sign in successful:", result);
 
-			// Store the token in localStorage
-			if (result.token) {
-				localStorage.setItem("auth_token", result.token);
-			}
+				// Store the token in localStorage
+				if (result.token) {
+					localStorage.setItem("auth_token", result.token);
+				}
 
-			// Redirect to dashboard
-			window.location.href = "/dashboard";
-		} catch (err) {
-			console.error("Sign in error:", err);
-			setError(
-				err instanceof Error
-					? err.message
-					: "Failed to sign in. Please try again.",
-			);
-		} finally {
-			setLoading(false);
-		}
+				// Redirect to dashboard
+				window.location.href = "/dashboard";
+			},
+		});
 	};
 
 	const handleResetPassword = async () => {
@@ -59,60 +74,52 @@ export function SignInForm() {
 		setError("");
 		setResetSuccess(false);
 
-		try {
-			// Step 1: Request password reset token
-			const forgetProgram = Effect.gen(function* () {
-				const client = yield* apiClient;
-				return yield* client.auth.forgetPassword({
-					payload: { email },
-				});
-			});
+		// Combine all steps into a single Effect pipeline
+		const program = Effect.gen(function* () {
+			const client = yield* apiClient;
 
-			await Effect.runPromise(forgetProgram);
+			// Step 1: Request password reset token
+			yield* client.auth.forgetPassword({ payload: { email } });
 
 			// Step 2: Get the token from /dev/tokens
-			const tokensProgram = Effect.gen(function* () {
-				const client = yield* apiClient;
-				return yield* client.dev.listTokens();
-			});
-
-			const tokensResult = await Effect.runPromise(tokensProgram);
+			const tokensResult = yield* client.dev.listTokens();
 
 			// Find the most recent reset-password token
-			// Identifier format is "reset-password:{token}"
 			const resetToken = tokensResult.tokens.find((t) =>
 				t.identifier.startsWith("reset-password:"),
 			);
 
 			if (!resetToken) {
-				throw new Error("Reset token not found");
+				return yield* Effect.fail(new Error("Reset token not found"));
 			}
 
 			// Extract the token from the identifier
 			const token = resetToken.identifier.replace("reset-password:", "");
 
 			// Step 3: Reset password to Reset!1234
-			const resetProgram = Effect.gen(function* () {
-				const client = yield* apiClient;
-				return yield* client.auth.resetPassword({
-					payload: { token, password: "Reset!1234" },
-				});
+			yield* client.auth.resetPassword({
+				payload: { token, password: "Reset!1234" },
 			});
 
-			await Effect.runPromise(resetProgram);
+			return { success: true } as const;
+		});
 
-			setResetSuccess(true);
-			setPassword("Reset!1234");
-		} catch (err) {
-			console.error("Reset password error:", err);
-			setError(
-				err instanceof Error
-					? err.message
-					: "Failed to reset password. Please try again.",
-			);
-		} finally {
-			setResetting(false);
-		}
+		const exit = await Effect.runPromiseExit(program);
+
+		Exit.match(exit, {
+			onFailure: (cause) => {
+				console.error("Reset password error:", cause);
+				setError(
+					getErrorMessage(cause, "Failed to reset password. Please try again."),
+				);
+				setResetting(false);
+			},
+			onSuccess: () => {
+				setResetSuccess(true);
+				setPassword("Reset!1234");
+				setResetting(false);
+			},
+		});
 	};
 
 	return (
