@@ -61,10 +61,7 @@ export const AuthLive = Layer.effect(
 			}),
 			secret: Redacted.value(config.auth.secret),
 			baseURL: config.auth.url,
-			trustedOrigins: [
-				"http://localhost:4321",
-				"https://cloudflare-effect-better-auth-web.pages.dev",
-			],
+			trustedOrigins: ["http://localhost:4321", config.webUrl],
 			advanced: {
 				defaultCookieAttributes: {
 					sameSite: "none",

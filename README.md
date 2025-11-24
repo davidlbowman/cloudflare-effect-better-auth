@@ -2,7 +2,7 @@
 
 A full-stack authentication demo using [Better Auth](https://www.better-auth.com/) on [Cloudflare Workers](https://workers.cloudflare.com/) with [Effect](https://effect.website/) for type-safe functional patterns and [Cloudflare D1](https://developers.cloudflare.com/d1/) for the database.
 
-**Live Demo:** https://cloudflare-effect-better-auth-web.pages.dev
+**Live Demo:** <https://cloudflare-effect-better-auth-web.pages.dev>
 
 ## Stack
 
@@ -30,8 +30,8 @@ cp .dev.vars.example .dev.vars
 bun run dev
 ```
 
-- API: http://localhost:8787
-- Web: http://localhost:4321
+- API: <http://localhost:8787>
+- Web: <http://localhost:4321>
 
 ### Database Setup (Local)
 
@@ -77,6 +77,7 @@ openssl rand -base64 32
 # Set secrets
 wrangler secret put BETTER_AUTH_SECRET
 wrangler secret put BETTER_AUTH_URL  # e.g., https://your-api.workers.dev
+wrangler secret put WEB_URL          # e.g., https://your-web.pages.dev
 ```
 
 ### 5. Deploy API
@@ -85,23 +86,21 @@ wrangler secret put BETTER_AUTH_URL  # e.g., https://your-api.workers.dev
 wrangler deploy
 ```
 
+> **Note:** For production, remove `http://localhost:4321` from `allowedOrigins` in `packages/api/src/index.ts` and `trustedOrigins` in `packages/api/src/services/AuthService.ts`.
+
 ### 6. Deploy Web
 
 ```bash
 cd packages/web
 
-# Copy and configure wrangler.toml
-cp wrangler.toml.example wrangler.toml
-# Edit wrangler.toml and set PUBLIC_API_URL to your deployed API URL
-
 # Build with production API URL
 NODE_ENV=production PUBLIC_API_URL=https://your-api.workers.dev bun run build
 
 # Create Pages project (first time only)
-wrangler pages project create cloudflare-effect-better-auth-web --production-branch=main
+wrangler pages project create your-project-web --production-branch=main
 
 # Deploy
-wrangler pages deploy dist --project-name=cloudflare-effect-better-auth-web --branch=main
+wrangler pages deploy dist --project-name=your-project-web --branch=main
 ```
 
 ## Project Structure
@@ -123,53 +122,6 @@ wrangler pages deploy dist --project-name=cloudflare-effect-better-auth-web --br
 │       └── src/api/         # Effect HttpApi definitions
 ├── wrangler.toml.example    # Cloudflare config template
 └── .dev.vars.example        # Environment variables template
-```
-
-## Key Patterns
-
-### Effect HttpApi
-
-Type-safe API definition shared between client and server:
-
-```typescript
-// packages/shared/src/api/AuthApi.ts
-export const AuthApi = HttpApi.make("api")
-  .add(
-    HttpApiGroup.make("auth")
-      .add(
-        HttpApiEndpoint.post("signUp", "/auth/sign-up")
-          .setPayload(SignUpSchema)
-          .addSuccess(AuthResponseSchema)
-          .addError(AuthError)
-      )
-  )
-```
-
-### Effect Services
-
-Composable service layers with dependency injection:
-
-```typescript
-// packages/api/src/services/AuthService.ts
-export class AuthService extends Effect.Service<AuthService>()("AuthService", {
-  effect: Effect.gen(function* () {
-    const drizzle = yield* DrizzleService
-    const auth = betterAuth({ database: drizzle.db })
-    return { auth }
-  }),
-  dependencies: [DrizzleServiceLive]
-}) {}
-```
-
-### Frontend with Effect
-
-Type-safe API calls using Effect's HttpApiClient:
-
-```typescript
-// packages/web/src/lib/api.ts
-export const apiClient = HttpApiClient.make(AuthApi, {
-  baseUrl: import.meta.env.PUBLIC_API_URL || "http://localhost:8787",
-}).pipe(Effect.provide(fetchClientLayer))
 ```
 
 ## Scripts

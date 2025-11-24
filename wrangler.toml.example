@@ -20,3 +20,4 @@ database_id = "<YOUR_D1_DATABASE_ID>"
 # Required secrets:
 # - BETTER_AUTH_SECRET
 # - BETTER_AUTH_URL
+# - WEB_URL
