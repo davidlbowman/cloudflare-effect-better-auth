@@ -2,7 +2,8 @@
 	"files": [],
 	"references": [
 		{ "path": "./packages/api" },
-		{ "path": "./packages/web" }
+		{ "path": "./packages/web" },
+    { "path": "./packages/shared" }
 	],
 	"compilerOptions": {
 		"lib": ["ESNext"],

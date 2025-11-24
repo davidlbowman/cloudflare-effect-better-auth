@@ -1,7 +1,7 @@
 import { HttpServerRequest } from "@effect/platform";
 import { Effect, Schema } from "effect";
 import { AuthService } from "../services/AuthService";
-import { AuthError } from "../errors/AuthError";
+import { AuthError } from "../../../shared/src/errors/AuthError";
 import type {
 	AuthResponseSchema,
 	ForgetPasswordSchema,
@@ -10,7 +10,7 @@ import type {
 	SignUpSchema,
 	SuccessSchema,
 	UpdateUserSchema,
-} from "../api/AuthApi";
+} from "../../../shared/src/api/AuthApi";
 
 type SignUpPayload = Schema.Schema.Type<typeof SignUpSchema>;
 type SignInPayload = Schema.Schema.Type<typeof SignInSchema>;

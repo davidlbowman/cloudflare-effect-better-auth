@@ -16,9 +16,10 @@ export default {
 		// Copy env to process.env for Effect Config
 		Object.assign(process.env, env);
 
-		// Build the complete layer stack with DB dependency
+		// Build the complete layer stack with DB dependency and CORS middleware
 		const AppLayer = Layer.mergeAll(
 			buildApiLive(env.DB),
+			HttpApiBuilder.middlewareCors(),
 			HttpServer.layerContext,
 		);
 

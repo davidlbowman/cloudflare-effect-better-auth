@@ -1,14 +1,13 @@
 import { FetchHttpClient, HttpApiBuilder } from "@effect/platform";
 import type { D1Database } from "@cloudflare/workers-types";
 import { Layer } from "effect";
-import { AuthApi } from "../api/AuthApi";
+import { AuthApi } from "../../../shared/src/api/AuthApi";
 import * as handlers from "../handlers/authHandlers";
 import { AuthDev } from "./AuthService";
 import { ConfigService } from "./ConfigService";
 import { D1Dev } from "./D1Service";
 import { DrizzleDev } from "./DrizzleService";
 
-// Auth handlers group
 const AuthHandlers = HttpApiBuilder.group(AuthApi, "auth", (h) =>
 	h
 		.handle("signUp", handlers.handleSignUp)

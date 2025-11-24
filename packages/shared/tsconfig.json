@@ -4,8 +4,6 @@
 		"target": "ESNext",
 		"module": "Preserve",
 		"moduleDetection": "force",
-		"jsx": "react-jsx",
-		"allowJs": true,
 		"moduleResolution": "bundler",
 		"allowImportingTsExtensions": true,
 		"verbatimModuleSyntax": true,
@@ -18,8 +16,7 @@
 		"noUnusedLocals": false,
 		"noUnusedParameters": false,
 		"noPropertyAccessFromIndexSignature": false,
-		"types": ["@cloudflare/workers-types", "@types/bun"],
 		"composite": true
 	},
-	"include": ["src/**/*", "../shared/**/*"]
+	"include": ["src/**/*"]
 }

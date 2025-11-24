@@ -19,8 +19,12 @@ import { Button } from "@/components/ui/button";
 						using Effect for type-safe, composable patterns.
 					</p>
 					<div class="flex gap-4">
-						<Button client:load>Get Started</Button>
-						<Button client:load variant="outline">Learn More</Button>
+						<Button client:load>
+							<a href="/sign-up">Sign Up</a>
+						</Button>
+						<Button client:load variant="outline">
+							<a href="/sign-in">Sign In</a>
+						</Button>
 					</div>
 				</div>
 			</div>

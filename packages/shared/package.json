@@ -1,0 +1,19 @@
+{
+	"name": "shared",
+	"module": "index.ts",
+	"type": "module",
+	"private": true,
+	"scripts": {
+		"clean": "rm -rf node_modules dist .turbo .tsbuildinfo"
+	},
+	"devDependencies": {
+		"@types/bun": "latest"
+	},
+	"peerDependencies": {
+		"typescript": "^5"
+	},
+	"dependencies": {
+		"@effect/platform": "^0.93.2",
+		"effect": "^3.19.4"
+	}
+}
