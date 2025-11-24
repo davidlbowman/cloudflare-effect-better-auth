@@ -10,7 +10,7 @@ import * as schema from "../db/schema";
 export class DrizzleService extends Context.Tag("DrizzleService")<
 	DrizzleService,
 	{
-		readonly db: DrizzleD1Database<typeof schema.schema>;
+		readonly db: DrizzleD1Database<typeof schema>;
 	}
 >() {}
 
@@ -20,7 +20,7 @@ export class DrizzleService extends Context.Tag("DrizzleService")<
 export const DrizzleTest = Layer.succeed(
 	DrizzleService,
 	DrizzleService.of({
-		db: {} as DrizzleD1Database<typeof schema.schema>,
+		db: {} as DrizzleD1Database<typeof schema>,
 	}),
 );
 
@@ -31,6 +31,6 @@ export const DrizzleDev = (d1: D1Database) =>
 	Layer.succeed(
 		DrizzleService,
 		DrizzleService.of({
-			db: drizzle(d1, { schema: schema.schema }),
+			db: drizzle(d1, { schema }),
 		}),
 	);
