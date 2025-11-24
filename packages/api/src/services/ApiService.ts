@@ -3,6 +3,7 @@ import type { D1Database } from "@cloudflare/workers-types";
 import { Layer } from "effect";
 import { AuthApi } from "../../../shared/src/api/AuthApi";
 import * as handlers from "../handlers/authHandlers";
+import * as devHandlers from "../handlers/devHandlers";
 import { AuthDev } from "./AuthService";
 import { ConfigService } from "./ConfigService";
 import { D1Dev } from "./D1Service";
@@ -19,6 +20,10 @@ const AuthHandlers = HttpApiBuilder.group(AuthApi, "auth", (h) =>
 		.handle("resetPassword", handlers.handleResetPassword),
 );
 
+const DevHandlers = HttpApiBuilder.group(AuthApi, "dev", (h) =>
+	h.handle("listTokens", devHandlers.handleListTokens),
+);
+
 /**
  * Build complete API layer with all dependencies
  * @param db - D1 database instance from Cloudflare Workers env
@@ -26,6 +31,7 @@ const AuthHandlers = HttpApiBuilder.group(AuthApi, "auth", (h) =>
 export const buildApiLive = (db: D1Database) =>
 	HttpApiBuilder.api(AuthApi).pipe(
 		Layer.provide(AuthHandlers),
+		Layer.provide(DevHandlers),
 		Layer.provide(AuthDev),
 		Layer.provide(DrizzleDev(db)),
 		Layer.provide(D1Dev(db)),

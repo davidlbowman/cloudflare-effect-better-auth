@@ -10,6 +10,8 @@ export function SignInForm() {
 	const [password, setPassword] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState("");
+	const [resetting, setResetting] = useState(false);
+	const [resetSuccess, setResetSuccess] = useState(false);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -45,6 +47,72 @@ export function SignInForm() {
 		}
 	};
 
+	const handleResetPassword = async () => {
+		if (!email) {
+			setError("Please enter your email first");
+			return;
+		}
+
+		setResetting(true);
+		setError("");
+		setResetSuccess(false);
+
+		try {
+			// Step 1: Request password reset token
+			const forgetProgram = Effect.gen(function* () {
+				const client = yield* apiClient;
+				return yield* client.auth.forgetPassword({
+					payload: { email },
+				});
+			});
+
+			await Effect.runPromise(forgetProgram);
+
+			// Step 2: Get the token from /dev/tokens
+			const tokensProgram = Effect.gen(function* () {
+				const client = yield* apiClient;
+				return yield* client.dev.listTokens();
+			});
+
+			const tokensResult = await Effect.runPromise(tokensProgram);
+
+			// Find the most recent reset-password token
+			// Identifier format is "reset-password:{token}"
+			const resetToken = tokensResult.tokens.find((t) =>
+				t.identifier.startsWith("reset-password:"),
+			);
+
+			if (!resetToken) {
+				throw new Error("Reset token not found");
+			}
+
+			// Extract the token from the identifier
+			const token = resetToken.identifier.replace("reset-password:", "");
+
+			// Step 3: Reset password to Reset!1234
+			const resetProgram = Effect.gen(function* () {
+				const client = yield* apiClient;
+				return yield* client.auth.resetPassword({
+					payload: { token, password: "Reset!1234" },
+				});
+			});
+
+			await Effect.runPromise(resetProgram);
+
+			setResetSuccess(true);
+			setPassword("Reset!1234");
+		} catch (err) {
+			console.error("Reset password error:", err);
+			setError(
+				err instanceof Error
+					? err.message
+					: "Failed to reset password. Please try again.",
+			);
+		} finally {
+			setResetting(false);
+		}
+	};
+
 	return (
 		<div className="w-full max-w-md space-y-6">
 			<div className="space-y-2 text-center">
@@ -69,7 +137,17 @@ export function SignInForm() {
 				</div>
 
 				<div className="space-y-2">
-					<Label htmlFor="password">Password</Label>
+					<div className="flex items-center justify-between">
+						<Label htmlFor="password">Password</Label>
+						<button
+							type="button"
+							onClick={handleResetPassword}
+							disabled={resetting || !email}
+							className="text-xs text-primary hover:underline disabled:opacity-50"
+						>
+							{resetting ? "Resetting..." : "Forgot password?"}
+						</button>
+					</div>
 					<Input
 						id="password"
 						type="password"
@@ -85,6 +163,12 @@ export function SignInForm() {
 				{error && (
 					<div className="p-3 text-sm text-red-500 bg-red-50 rounded-md border border-red-200">
 						{error}
+					</div>
+				)}
+
+				{resetSuccess && (
+					<div className="p-3 text-sm text-green-500 bg-green-50 rounded-md border border-green-200">
+						Password reset to: Reset!1234
 					</div>
 				)}
 

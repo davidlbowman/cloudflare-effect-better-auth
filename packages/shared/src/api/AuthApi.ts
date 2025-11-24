@@ -59,6 +59,17 @@ export const SuccessSchema = Schema.Struct({
 	success: Schema.Boolean,
 });
 
+export const TokenSchema = Schema.Struct({
+	identifier: Schema.String,
+	value: Schema.String,
+	expiresAt: Schema.Date,
+	createdAt: Schema.Date,
+});
+
+export const TokensResponseSchema = Schema.Struct({
+	tokens: Schema.Array(TokenSchema),
+});
+
 // Auth API Group with 7 endpoints
 const authGroup = HttpApiGroup.make("auth")
 	.add(
@@ -102,5 +113,12 @@ const authGroup = HttpApiGroup.make("auth")
 			.addError(AuthError),
 	);
 
+// Dev API Group - for local testing only
+const devGroup = HttpApiGroup.make("dev").add(
+	HttpApiEndpoint.get("listTokens", "/dev/tokens")
+		.addSuccess(TokensResponseSchema)
+		.addError(AuthError),
+);
+
 // Complete API
-export const AuthApi = HttpApi.make("api").add(authGroup);
+export const AuthApi = HttpApi.make("api").add(authGroup).add(devGroup);
