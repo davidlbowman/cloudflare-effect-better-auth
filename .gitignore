@@ -41,3 +41,6 @@ worker/
 
 # Local Effect-TS documentation
 .claude/effect/
+
+# Temporary Local Files 
+docs/

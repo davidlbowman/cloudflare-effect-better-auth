@@ -7,7 +7,11 @@
 	},
 	"files": {
 		"ignoreUnknown": false,
-		"includes": ["src/**", "!.claude/"]
+		"includes": [
+			"packages/*/src/**/*.{ts,tsx,js,jsx,json}",
+			"!packages/*/src/**/*.astro",
+			"!.claude/"
+		]
 	},
 	"formatter": {
 		"enabled": true,
@@ -23,6 +27,9 @@
 		"formatter": {
 			"quoteStyle": "double"
 		}
+	},
+	"html": {
+		"experimentalFullSupportEnabled": true
 	},
 	"assist": {
 		"enabled": true,

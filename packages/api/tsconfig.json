@@ -1,10 +1,4 @@
 {
-	"files": [],
-	"references": [
-		{ "path": "./packages/api" },
-		{ "path": "./packages/web" },
-    { "path": "./packages/shared" }
-	],
 	"compilerOptions": {
 		"lib": ["ESNext"],
 		"target": "ESNext",
@@ -23,6 +17,9 @@
 		"noImplicitOverride": true,
 		"noUnusedLocals": false,
 		"noUnusedParameters": false,
-		"noPropertyAccessFromIndexSignature": false
-	}
+		"noPropertyAccessFromIndexSignature": false,
+		"types": ["@cloudflare/workers-types", "@types/bun"],
+		"composite": true
+	},
+	"include": ["src/**/*", "../shared/**/*"]
 }

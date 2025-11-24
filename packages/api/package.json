@@ -1,0 +1,32 @@
+{
+	"name": "api",
+	"module": "index.ts",
+	"type": "module",
+	"private": true,
+	"scripts": {
+		"dev": "wrangler dev",
+		"dev:remote": "wrangler dev --remote",
+		"deploy": "wrangler deploy",
+		"test": "bun test",
+		"clean": "rm -rf node_modules dist .wrangler .turbo .tsbuildinfo"
+	},
+	"dependencies": {
+		"@effect/platform": "^0.93.2",
+		"@effect/schema": "^0.75.5",
+		"@effect/sql": "^0.48.0",
+		"@effect/sql-d1": "^0.4.0",
+		"@effect/sql-drizzle": "^0.47.0",
+		"drizzle-orm": "^0.44.7",
+		"effect": "^3.19.4"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20251121.0",
+		"@types/bun": "latest",
+		"better-sqlite3": "^12.4.6",
+		"drizzle-kit": "^0.31.6",
+		"wrangler": "^4.50.0"
+	},
+	"peerDependencies": {
+		"typescript": "^5"
+	}
+}
