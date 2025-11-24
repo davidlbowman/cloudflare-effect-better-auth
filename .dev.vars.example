@@ -1,0 +1,6 @@
+# Better Auth Configuration
+BETTER_AUTH_SECRET=your-secret-key-here
+BETTER_AUTH_URL=http://localhost:8787
+
+# Database (D1) is bound via wrangler.toml
+# No connection string needed for local development
