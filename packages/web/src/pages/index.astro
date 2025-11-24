@@ -1,0 +1,29 @@
+---
+import "@/styles/global.css";
+import { Button } from "@/components/ui/button";
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width" />
+		<title>Cloudflare + Effect + Better Auth Demo</title>
+	</head>
+	<body>
+		<main>
+			<div class="container min-h-screen flex items-center justify-center">
+				<div class="flex flex-col items-center gap-8 text-center">
+					<h1 class="text-5xl font-bold">Better Auth Demo</h1>
+					<p class="text-xl text-muted-foreground max-w-2xl">
+						A demonstration of authentication with Better Auth on Cloudflare Workers
+						using Effect for type-safe, composable patterns.
+					</p>
+					<div class="flex gap-4">
+						<Button client:load>Get Started</Button>
+						<Button client:load variant="outline">Learn More</Button>
+					</div>
+				</div>
+			</div>
+		</main>
+	</body>
+</html>

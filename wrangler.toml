@@ -1,5 +1,5 @@
-name = "cloudflare-effect-better-auth"
-main = "src/index.ts"
+name = "cloudflare-effect-better-auth-api"
+main = "packages/api/index.ts"
 compatibility_date = "2025-01-17"
 compatibility_flags = ["nodejs_compat"]
 

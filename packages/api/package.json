@@ -1,0 +1,21 @@
+{
+	"name": "api",
+	"module": "index.ts",
+	"type": "module",
+	"private": true,
+	"scripts": {
+		"dev": "wrangler dev",
+		"dev:remote": "wrangler dev --remote",
+		"deploy": "wrangler deploy",
+		"clean": "rm -rf node_modules dist .wrangler .turbo .tsbuildinfo"
+	},
+	"dependencies": {},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20251121.0",
+		"@types/bun": "latest",
+		"wrangler": "^4.50.0"
+	},
+	"peerDependencies": {
+		"typescript": "^5"
+	}
+}

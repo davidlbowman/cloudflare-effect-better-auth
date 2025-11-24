@@ -1,24 +1,31 @@
 {
 	"name": "cloudflare-effect-better-auth",
-	"module": "index.ts",
 	"type": "module",
 	"private": true,
+	"workspaces": ["packages/*"],
 	"scripts": {
-		"dev": "wrangler dev",
-		"dev:remote": "wrangler dev --remote",
-		"deploy": "wrangler deploy",
+		"dev": "bun run dev:api & bun run dev:web",
+		"dev:api": "bun run --filter=api dev",
+		"dev:web": "bun run --filter=web dev",
 		"lint": "biome check .",
 		"lint:fix": "biome check --write --unsafe .",
 		"format": "biome format --write .",
-		"typecheck": "tsc --noEmit"
+		"typecheck": "tsc -b",
+		"clean": "bun run --filter=api clean && bun run --filter=web clean && rm -rf node_modules .turbo .tsbuildinfo .wrangler"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.3.7",
-		"@cloudflare/workers-types": "^4.20251121.0",
-		"@types/bun": "latest",
-		"wrangler": "^4.50.0"
+		"@types/bun": "latest"
 	},
 	"peerDependencies": {
 		"typescript": "^5"
+	},
+	"dependencies": {
+		"@astrojs/cloudflare": "^12.6.11",
+		"@astrojs/react": "^4.4.2",
+		"@types/react": "^19.2.7",
+		"@types/react-dom": "^19.2.3",
+		"react": "^19.2.0",
+		"react-dom": "^19.2.0"
 	}
 }
