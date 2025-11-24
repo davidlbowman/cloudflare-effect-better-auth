@@ -7,6 +7,7 @@
 		"dev": "bun run dev:api & bun run dev:web",
 		"dev:api": "bun run --filter=api dev",
 		"dev:web": "bun run --filter=web dev",
+		"db:studio": "cd packages/api && bunx drizzle-kit studio",
 		"lint": "biome check .",
 		"lint:fix": "biome check --write --unsafe .",
 		"format": "biome format --write .",
