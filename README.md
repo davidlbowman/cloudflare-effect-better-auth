@@ -1,114 +1,192 @@
-# Cloudflare + Effect + Better Auth Demo
+# Cloudflare + Effect + Better Auth
 
-A demonstration of building authentication with [Better Auth](https://www.better-auth.com/) on [Cloudflare Workers](https://workers.cloudflare.com/) using [Effect](https://effect.website/) for functional programming patterns and [Cloudflare D1](https://developers.cloudflare.com/d1/) for SQLite database storage.
+A full-stack authentication demo using [Better Auth](https://www.better-auth.com/) on [Cloudflare Workers](https://workers.cloudflare.com/) with [Effect](https://effect.website/) for type-safe functional patterns and [Cloudflare D1](https://developers.cloudflare.com/d1/) for the database.
 
-The frontend is built with [Astro](https://astro.build/).
+**Live Demo:** https://cloudflare-effect-better-auth-web.pages.dev
 
-## Features
+## Stack
 
-- **Better Auth** for authentication and session management
-- **Effect-TS** for type-safe, composable error handling and data flow
-- **Cloudflare D1** for serverless SQLite database
-- **Cloudflare Workers** for edge-deployed API endpoints
-- **Astro** for the frontend application
+- **API:** Cloudflare Workers + Effect HttpApi + Better Auth + Drizzle + D1
+- **Web:** Astro + React + Tailwind + shadcn/ui
+- **Auth:** Better Auth (email/password, sessions, password reset)
 
-## Prerequisites
+## Quick Start
 
-- [Bun](https://bun.sh/) v1.3.1 or higher
+### Prerequisites
+
+- [Bun](https://bun.sh/) v1.3+
 - [Cloudflare account](https://dash.cloudflare.com/)
-- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/)
 
-## Setup
-
-1. **Install dependencies:**
-
-   ```bash
-   bun install
-   ```
-
-2. **Create your local environment variables:**
-
-   ```bash
-   cp .dev.vars.example .dev.vars
-   ```
-
-   Edit `.dev.vars` and add your configuration:
-   - `BETTER_AUTH_SECRET`: A random secret key for Better Auth
-   - `BETTER_AUTH_URL`: Your app URL (use `http://localhost:8787` for local dev)
-
-3. **Create a D1 database:**
-
-   ```bash
-   npx wrangler d1 create cloudflare-effect-better-auth
-   ```
-
-   Copy the database ID from the output and update `wrangler.toml` with your database configuration.
-
-4. **Run database migrations:**
-
-   ```bash
-   # For local development
-   bun run db:apply:local
-
-   # For production
-   bun run db:apply:remote
-   ```
-
-## Development
-
-Run the development server:
+### Local Development
 
 ```bash
+# Install dependencies
+bun install
+
+# Copy environment variables
+cp .dev.vars.example .dev.vars
+
+# Start both API and web
 bun run dev
 ```
 
-The API will be available at `http://localhost:8787`.
+- API: http://localhost:8787
+- Web: http://localhost:4321
 
-For remote development (using Cloudflare's edge):
+### Database Setup (Local)
+
+Local D1 uses SQLite automatically. To apply migrations:
 
 ```bash
-bun run dev:remote
+cd packages/api
+bunx wrangler d1 execute cloudflare-effect-better-auth --local --file=drizzle/0000_bright_puma.sql
 ```
 
 ## Deployment
 
-Deploy to Cloudflare Workers:
+### 1. Create D1 Database
 
 ```bash
-bun run deploy
+wrangler d1 create cloudflare-effect-better-auth
 ```
 
-Make sure to set your production secrets:
+Copy the `database_id` from the output.
+
+### 2. Configure wrangler.toml
+
+Copy the example and add your database ID:
 
 ```bash
-npx wrangler secret put BETTER_AUTH_SECRET
-npx wrangler secret put BETTER_AUTH_URL
+cp wrangler.toml.example wrangler.toml
+```
+
+Edit `wrangler.toml` and replace `<YOUR_D1_DATABASE_ID>` with your actual database ID.
+
+### 3. Run Migrations
+
+```bash
+wrangler d1 execute cloudflare-effect-better-auth --remote --file=packages/api/drizzle/0000_bright_puma.sql
+```
+
+### 4. Set Secrets
+
+```bash
+# Generate a secret
+openssl rand -base64 32
+
+# Set secrets
+wrangler secret put BETTER_AUTH_SECRET
+wrangler secret put BETTER_AUTH_URL  # e.g., https://your-api.workers.dev
+```
+
+### 5. Deploy API
+
+```bash
+wrangler deploy
+```
+
+### 6. Deploy Web
+
+```bash
+cd packages/web
+
+# Copy and configure wrangler.toml
+cp wrangler.toml.example wrangler.toml
+# Edit wrangler.toml and set PUBLIC_API_URL to your deployed API URL
+
+# Build with production API URL
+NODE_ENV=production PUBLIC_API_URL=https://your-api.workers.dev bun run build
+
+# Create Pages project (first time only)
+wrangler pages project create cloudflare-effect-better-auth-web --production-branch=main
+
+# Deploy
+wrangler pages deploy dist --project-name=cloudflare-effect-better-auth-web --branch=main
 ```
 
 ## Project Structure
 
 ```
-cloudflare-effect-better-auth/
-├── src/
-│   └── index.ts          # Main Worker entry point
-├── migrations/           # D1 database migrations
-├── wrangler.toml        # Cloudflare Workers configuration
-└── package.json
+├── packages/
+│   ├── api/                 # Cloudflare Worker API
+│   │   ├── src/
+│   │   │   ├── index.ts     # Worker entry point
+│   │   │   ├── handlers/    # API route handlers
+│   │   │   └── services/    # Effect services (Auth, Drizzle, D1)
+│   │   └── drizzle/         # Database migrations
+│   ├── web/                 # Astro frontend
+│   │   └── src/
+│   │       ├── components/  # React components
+│   │       ├── pages/       # Astro pages
+│   │       └── lib/         # API client, helpers
+│   └── shared/              # Shared types and schemas
+│       └── src/api/         # Effect HttpApi definitions
+├── wrangler.toml.example    # Cloudflare config template
+└── .dev.vars.example        # Environment variables template
+```
+
+## Key Patterns
+
+### Effect HttpApi
+
+Type-safe API definition shared between client and server:
+
+```typescript
+// packages/shared/src/api/AuthApi.ts
+export const AuthApi = HttpApi.make("api")
+  .add(
+    HttpApiGroup.make("auth")
+      .add(
+        HttpApiEndpoint.post("signUp", "/auth/sign-up")
+          .setPayload(SignUpSchema)
+          .addSuccess(AuthResponseSchema)
+          .addError(AuthError)
+      )
+  )
+```
+
+### Effect Services
+
+Composable service layers with dependency injection:
+
+```typescript
+// packages/api/src/services/AuthService.ts
+export class AuthService extends Effect.Service<AuthService>()("AuthService", {
+  effect: Effect.gen(function* () {
+    const drizzle = yield* DrizzleService
+    const auth = betterAuth({ database: drizzle.db })
+    return { auth }
+  }),
+  dependencies: [DrizzleServiceLive]
+}) {}
+```
+
+### Frontend with Effect
+
+Type-safe API calls using Effect's HttpApiClient:
+
+```typescript
+// packages/web/src/lib/api.ts
+export const apiClient = HttpApiClient.make(AuthApi, {
+  baseUrl: import.meta.env.PUBLIC_API_URL || "http://localhost:8787",
+}).pipe(Effect.provide(fetchClientLayer))
 ```
 
 ## Scripts
 
-- `bun run dev` - Start local development server
-- `bun run dev:remote` - Start development server on Cloudflare's edge
-- `bun run deploy` - Deploy to production
-- `bun run lint` - Run Biome linter
-- `bun run format` - Format code with Biome
-- `bun run typecheck` - Run TypeScript type checking
+| Script | Description |
+|--------|-------------|
+| `bun run dev` | Start API and web in parallel |
+| `bun run dev:api` | Start API only |
+| `bun run dev:web` | Start web only |
+| `bun run typecheck` | TypeScript type checking |
+| `bun run lint` | Biome linting |
+| `bun run lint:fix` | Fix linting issues |
 
 ## Resources
 
-- [Better Auth Documentation](https://www.better-auth.com/docs)
-- [Effect Documentation](https://effect.website/docs/introduction)
-- [Cloudflare Workers Documentation](https://developers.cloudflare.com/workers/)
-- [Cloudflare D1 Documentation](https://developers.cloudflare.com/d1/)
-- [Astro Documentation](https://docs.astro.build/)
+- [Better Auth Docs](https://www.better-auth.com/docs)
+- [Effect Docs](https://effect.website/docs/introduction)
+- [Cloudflare Workers](https://developers.cloudflare.com/workers/)
+- [Cloudflare D1](https://developers.cloudflare.com/d1/)
+- [Astro](https://docs.astro.build/)
