@@ -5,47 +5,40 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { apiClient } from "@/lib/api";
 
-export function SignUpForm() {
+export function SignInForm() {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
-	const [name, setName] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState("");
-	const [success, setSuccess] = useState(false);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setLoading(true);
 		setError("");
-		setSuccess(false);
 
 		try {
 			const program = Effect.gen(function* () {
 				const client = yield* apiClient;
-				return yield* client.auth.signUp({
-					payload: { email, password, name },
+				return yield* client.auth.signIn({
+					payload: { email, password },
 				});
 			});
 
 			const result = await Effect.runPromise(program);
 
-			console.log("Sign up successful:", result);
+			console.log("Sign in successful:", result);
 
-			// Store the token if provided
+			// Store the token in localStorage
 			if (result.token) {
 				localStorage.setItem("auth_token", result.token);
 			}
 
-			setSuccess(true);
-
-			// Redirect to dashboard after 1 second
-			setTimeout(() => {
-				window.location.href = "/dashboard";
-			}, 1000);
+			// Redirect to dashboard
+			window.location.href = "/dashboard";
 		} catch (err) {
-			console.error("Sign up error:", err);
+			console.error("Sign in error:", err);
 			setError(
-				err instanceof Error ? err.message : "Failed to sign up. Please try again.",
+				err instanceof Error ? err.message : "Failed to sign in. Please try again.",
 			);
 		} finally {
 			setLoading(false);
@@ -55,26 +48,13 @@ export function SignUpForm() {
 	return (
 		<div className="w-full max-w-md space-y-6">
 			<div className="space-y-2 text-center">
-				<h1 className="text-3xl font-bold">Create an account</h1>
+				<h1 className="text-3xl font-bold">Sign in</h1>
 				<p className="text-muted-foreground">
-					Enter your details below to create your account
+					Enter your email and password to sign in
 				</p>
 			</div>
 
 			<form onSubmit={handleSubmit} className="space-y-4">
-				<div className="space-y-2">
-					<Label htmlFor="name">Name</Label>
-					<Input
-						id="name"
-						type="text"
-						placeholder="John Doe"
-						value={name}
-						onChange={(e) => setName(e.target.value)}
-						required
-						disabled={loading}
-					/>
-				</div>
-
 				<div className="space-y-2">
 					<Label htmlFor="email">Email</Label>
 					<Input
@@ -108,21 +88,15 @@ export function SignUpForm() {
 					</div>
 				)}
 
-				{success && (
-					<div className="p-3 text-sm text-green-500 bg-green-50 rounded-md border border-green-200">
-						Account created successfully! Redirecting...
-					</div>
-				)}
-
 				<Button type="submit" className="w-full" disabled={loading}>
-					{loading ? "Creating account..." : "Sign Up"}
+					{loading ? "Signing in..." : "Sign In"}
 				</Button>
 			</form>
 
 			<div className="text-center text-sm">
-				Already have an account?{" "}
-				<a href="/sign-in" className="text-primary hover:underline">
-					Sign in
+				Don't have an account?{" "}
+				<a href="/sign-up" className="text-primary hover:underline">
+					Sign up
 				</a>
 			</div>
 		</div>
