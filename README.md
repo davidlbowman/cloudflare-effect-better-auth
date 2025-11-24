@@ -124,6 +124,15 @@ wrangler pages deploy dist --project-name=your-project-web --branch=main
 └── .dev.vars.example        # Environment variables template
 ```
 
+## Password Reset (Demo)
+
+This demo doesn't include email integration. The "Forgot password?" flow works by:
+1. Generating a reset token in the database
+2. Fetching the token via `/dev/tokens` endpoint
+3. Automatically resetting the password to `Reset!1234`
+
+For production, integrate an email provider (Resend, SendGrid, etc.) and remove the `/dev/tokens` endpoint.
+
 ## Scripts
 
 | Script | Description |
