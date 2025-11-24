@@ -1,10 +1,10 @@
 import { HttpServerResponse } from "@effect/platform";
-import { Effect, Schema } from "effect";
-import { DrizzleService } from "../services/DrizzleService";
-import { verification } from "../db/schema";
 import { desc } from "drizzle-orm";
+import { Effect, type Schema } from "effect";
 import type { TokensResponseSchema } from "../../../shared/src/api/AuthApi";
 import { AuthError } from "../../../shared/src/errors/AuthError";
+import { verification } from "../db/schema";
+import { DrizzleService } from "../services/DrizzleService";
 
 type TokensResponse = Schema.Schema.Type<typeof TokensResponseSchema>;
 
@@ -27,7 +27,8 @@ export const handleListTokens = () =>
 			Effect.mapError(
 				(error) =>
 					new AuthError({
-						message: error instanceof Error ? error.message : "Failed to fetch tokens",
+						message:
+							error instanceof Error ? error.message : "Failed to fetch tokens",
 					}),
 			),
 		);

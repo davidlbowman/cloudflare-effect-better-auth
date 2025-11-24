@@ -1,5 +1,5 @@
-import { FetchHttpClient, HttpApiBuilder } from "@effect/platform";
 import type { D1Database } from "@cloudflare/workers-types";
+import { FetchHttpClient, HttpApiBuilder } from "@effect/platform";
 import { Layer } from "effect";
 import { AuthApi } from "../../../shared/src/api/AuthApi";
 import * as handlers from "../handlers/authHandlers";

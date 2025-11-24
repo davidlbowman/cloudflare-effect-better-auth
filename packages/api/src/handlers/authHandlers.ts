@@ -1,7 +1,5 @@
 import { HttpServerRequest, HttpServerResponse } from "@effect/platform";
-import { Effect, Schema, pipe } from "effect";
-import { AuthService } from "../services/AuthService";
-import { AuthError } from "../../../shared/src/errors/AuthError";
+import { Effect, pipe, type Schema } from "effect";
 import type {
 	AuthResponseSchema,
 	ForgetPasswordSchema,
@@ -11,6 +9,8 @@ import type {
 	SuccessSchema,
 	UpdateUserSchema,
 } from "../../../shared/src/api/AuthApi";
+import { AuthError } from "../../../shared/src/errors/AuthError";
+import { AuthService } from "../services/AuthService";
 
 type SignUpPayload = Schema.Schema.Type<typeof SignUpSchema>;
 type SignInPayload = Schema.Schema.Type<typeof SignInSchema>;
@@ -53,10 +53,12 @@ export const handleSignUp = ({ payload }: { payload: SignUpPayload }) =>
 					? pipe(
 							jsonResponse,
 							HttpServerResponse.setHeader("set-cookie", setCookie),
-					  )
+						)
 					: jsonResponse,
 			),
-			Effect.mapError(() => new AuthError({ message: "Failed to create response" })),
+			Effect.mapError(
+				() => new AuthError({ message: "Failed to create response" }),
+			),
 		);
 	});
 
@@ -92,10 +94,12 @@ export const handleSignIn = ({ payload }: { payload: SignInPayload }) =>
 					? pipe(
 							jsonResponse,
 							HttpServerResponse.setHeader("set-cookie", setCookie),
-					  )
+						)
 					: jsonResponse,
 			),
-			Effect.mapError(() => new AuthError({ message: "Failed to create response" })),
+			Effect.mapError(
+				() => new AuthError({ message: "Failed to create response" }),
+			),
 		);
 	});
 
@@ -128,10 +132,12 @@ export const handleSignOut = () =>
 					? pipe(
 							jsonResponse,
 							HttpServerResponse.setHeader("set-cookie", setCookie),
-					  )
+						)
 					: jsonResponse,
 			),
-			Effect.mapError(() => new AuthError({ message: "Failed to create response" })),
+			Effect.mapError(
+				() => new AuthError({ message: "Failed to create response" }),
+			),
 		);
 	});
 
@@ -182,7 +188,9 @@ export const handleUpdateUser = ({ payload }: { payload: UpdateUserPayload }) =>
 
 export const handleForgetPassword = ({
 	payload,
-}: { payload: ForgetPasswordPayload }) =>
+}: {
+	payload: ForgetPasswordPayload;
+}) =>
 	Effect.gen(function* () {
 		const auth = yield* AuthService;
 
@@ -207,7 +215,9 @@ export const handleForgetPassword = ({
 
 export const handleResetPassword = ({
 	payload,
-}: { payload: ResetPasswordPayload }) =>
+}: {
+	payload: ResetPasswordPayload;
+}) =>
 	Effect.gen(function* () {
 		const auth = yield* AuthService;
 

@@ -32,9 +32,7 @@ export const AuthDev = Layer.effect(
 				requireEmailVerification: false,
 				sendResetPassword: async ({ user, url }) => {
 					// Mock email sender for local dev - just log to console
-					console.log(
-						`[DEV] Password reset for ${user.email}: ${url}`,
-					);
+					console.log(`[DEV] Password reset for ${user.email}: ${url}`);
 				},
 			},
 		});

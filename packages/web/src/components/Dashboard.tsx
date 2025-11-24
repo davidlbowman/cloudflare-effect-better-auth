@@ -80,7 +80,9 @@ export function Dashboard() {
 			<main className="container mx-auto px-4 py-8">
 				<div className="max-w-2xl space-y-6">
 					<div className="bg-card p-6 rounded-lg border">
-						<h2 className="text-xl font-semibold mb-4">Welcome, {user.name}!</h2>
+						<h2 className="text-xl font-semibold mb-4">
+							Welcome, {user.name}!
+						</h2>
 
 						<div className="space-y-3">
 							<div>
@@ -107,7 +109,8 @@ export function Dashboard() {
 					<div className="bg-card p-6 rounded-lg border">
 						<h2 className="text-xl font-semibold mb-2">Protected Content</h2>
 						<p className="text-muted-foreground">
-							This is a protected page. Only authenticated users can see this content.
+							This is a protected page. Only authenticated users can see this
+							content.
 						</p>
 					</div>
 				</div>

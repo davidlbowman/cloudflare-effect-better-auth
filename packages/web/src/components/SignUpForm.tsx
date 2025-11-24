@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { Effect } from "effect";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,7 +45,9 @@ export function SignUpForm() {
 		} catch (err) {
 			console.error("Sign up error:", err);
 			setError(
-				err instanceof Error ? err.message : "Failed to sign up. Please try again.",
+				err instanceof Error
+					? err.message
+					: "Failed to sign up. Please try again.",
 			);
 		} finally {
 			setLoading(false);

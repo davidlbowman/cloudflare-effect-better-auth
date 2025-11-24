@@ -1,7 +1,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { HttpApiBuilder, HttpServer } from "@effect/platform";
 import type { D1Database } from "@cloudflare/workers-types";
+import { HttpApiBuilder, HttpServer } from "@effect/platform";
 import { Layer } from "effect";
 import { buildApiLive } from "./services/ApiService";
 
@@ -20,9 +20,9 @@ export default {
 		const AppLayer = Layer.mergeAll(
 			buildApiLive(env.DB),
 			HttpApiBuilder.middlewareCors({
-			allowedOrigins: ["http://localhost:4321"], // Frontend origin
-			credentials: true, // Allow credentials (cookies) to be sent
-		}),
+				allowedOrigins: ["http://localhost:4321"], // Frontend origin
+				credentials: true, // Allow credentials (cookies) to be sent
+			}),
 			HttpServer.layerContext,
 		);
 
