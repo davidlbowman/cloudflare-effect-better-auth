@@ -27,6 +27,10 @@ export const AuthDev = Layer.effect(
 			}),
 			secret: Redacted.value(config.auth.secret),
 			baseURL: config.auth.url,
+			emailAndPassword: {
+				enabled: true,
+				requireEmailVerification: false,
+			},
 		});
 	}),
 );

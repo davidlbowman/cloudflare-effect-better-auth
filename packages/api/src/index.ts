@@ -1,14 +1,30 @@
 /// <reference types="@cloudflare/workers-types" />
 
+import { HttpApiBuilder, HttpServer } from "@effect/platform";
+import type { D1Database } from "@cloudflare/workers-types";
+import { Layer } from "effect";
+import { buildApiLive } from "./services/ApiService";
+
 type Env = {
-	// D1 database binding will be added here
-	// DB: D1Database;
+	DB: D1Database;
+	BETTER_AUTH_SECRET: string;
+	BETTER_AUTH_URL: string;
 };
 
 export default {
 	async fetch(request: Request, env: Env): Promise<Response> {
-		return new Response("Hello from Cloudflare + Effect + Better Auth!", {
-			headers: { "Content-Type": "text/plain" },
-		});
+		// Copy env to process.env for Effect Config
+		Object.assign(process.env, env);
+
+		// Build the complete layer stack with DB dependency
+		const AppLayer = Layer.mergeAll(
+			buildApiLive(env.DB),
+			HttpServer.layerContext,
+		);
+
+		// Create web handler
+		const { handler } = HttpApiBuilder.toWebHandler(AppLayer);
+
+		return await handler(request);
 	},
 };
