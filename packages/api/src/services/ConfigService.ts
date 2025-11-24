@@ -1,5 +1,25 @@
 import { Config, Effect } from "effect";
 
+/**
+ * Service providing application configuration from environment variables.
+ *
+ * Reads configuration using Effect's Config module for type-safe,
+ * validated access to environment variables.
+ *
+ * @since 1.0.0
+ * @category Services
+ *
+ * @example
+ * ```ts
+ * const program = Effect.gen(function* () {
+ *   const config = yield* ConfigService;
+ *   const secret = Redacted.value(config.auth.secret);
+ * });
+ *
+ * // Use with Layer
+ * const layer = Layer.provide(ConfigService.Default);
+ * ```
+ */
 export class ConfigService extends Effect.Service<ConfigService>()(
 	"ConfigService",
 	{
@@ -9,7 +29,9 @@ export class ConfigService extends Effect.Service<ConfigService>()(
 
 			return {
 				auth: {
+					/** Better Auth secret key (redacted for security) */
 					secret: betterAuthSecret,
+					/** Better Auth base URL */
 					url: betterAuthUrl,
 				},
 			};

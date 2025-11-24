@@ -1,3 +1,10 @@
+/**
+ * Cloudflare Workers entry point for the Better Auth API.
+ *
+ * Configures and exports the fetch handler that processes all incoming requests.
+ *
+ * @module
+ */
 /// <reference types="@cloudflare/workers-types" />
 
 import type { D1Database } from "@cloudflare/workers-types";
@@ -5,6 +12,9 @@ import { HttpApiBuilder, HttpServer } from "@effect/platform";
 import { Layer } from "effect";
 import { buildApiLive } from "./services/ApiService";
 
+/**
+ * Cloudflare Workers environment bindings.
+ */
 type Env = {
 	DB: D1Database;
 	BETTER_AUTH_SECRET: string;
@@ -12,21 +22,30 @@ type Env = {
 };
 
 export default {
+	/**
+	 * Handles incoming HTTP requests.
+	 *
+	 * Sets up the Effect layer stack with:
+	 * - API handlers and services
+	 * - CORS middleware for frontend communication
+	 * - HTTP server context
+	 *
+	 * @param request - The incoming HTTP request
+	 * @param env - Cloudflare Workers environment bindings
+	 * @returns Promise resolving to the HTTP response
+	 */
 	async fetch(request: Request, env: Env): Promise<Response> {
-		// Copy env to process.env for Effect Config
 		Object.assign(process.env, env);
 
-		// Build the complete layer stack with DB dependency and CORS middleware
 		const AppLayer = Layer.mergeAll(
 			buildApiLive(env.DB),
 			HttpApiBuilder.middlewareCors({
-				allowedOrigins: ["http://localhost:4321"], // Frontend origin
-				credentials: true, // Allow credentials (cookies) to be sent
+				allowedOrigins: ["http://localhost:4321"],
+				credentials: true,
 			}),
 			HttpServer.layerContext,
 		);
 
-		// Create web handler
 		const { handler } = HttpApiBuilder.toWebHandler(AppLayer);
 
 		return await handler(request);

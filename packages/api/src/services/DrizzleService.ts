@@ -5,10 +5,23 @@ import { Context, Layer } from "effect";
 import * as schema from "../db/schema";
 
 /**
- * DrizzleService - Drizzle ORM database access
+ * Service providing Drizzle ORM database access.
  *
- * Yields the drizzle db instance directly.
- * Uses Context.Tag since it receives a runtime value (d1) that can't come from Config.
+ * Yields the Drizzle database instance directly for type-safe queries.
+ * Uses Context.Tag since it receives a runtime value (D1 binding).
+ *
+ * @since 1.0.0
+ * @category Services
+ *
+ * @example
+ * ```ts
+ * const program = Effect.gen(function* () {
+ *   const db = yield* DrizzleService;
+ *   const users = yield* Effect.tryPromise(() =>
+ *     db.select().from(schema.user)
+ *   );
+ * });
+ * ```
  */
 export class DrizzleService extends Context.Tag("DrizzleService")<
 	DrizzleService,
@@ -16,7 +29,19 @@ export class DrizzleService extends Context.Tag("DrizzleService")<
 >() {}
 
 /**
- * DrizzleTest - Empty database mock for testing
+ * Test layer providing an empty database mock.
+ *
+ * Use for unit testing without a real database connection.
+ *
+ * @since 1.0.0
+ * @category Layers
+ *
+ * @example
+ * ```ts
+ * const testProgram = myEffect.pipe(
+ *   Effect.provide(DrizzleTest)
+ * );
+ * ```
  */
 export const DrizzleTest = Layer.succeed(
 	DrizzleService,
@@ -24,7 +49,18 @@ export const DrizzleTest = Layer.succeed(
 );
 
 /**
- * DrizzleLive - Create DrizzleService layer from D1 binding
+ * Creates a DrizzleService layer from a D1 database binding.
+ *
+ * @param d1 - The D1 database instance from Cloudflare Workers environment
+ * @returns A Layer providing the DrizzleService with full schema support
+ *
+ * @since 1.0.0
+ * @category Layers
+ *
+ * @example
+ * ```ts
+ * const layer = DrizzleLive(env.DB);
+ * ```
  */
 export const DrizzleLive = (d1: D1Database) =>
 	Layer.succeed(DrizzleService, drizzle(d1, { schema }));

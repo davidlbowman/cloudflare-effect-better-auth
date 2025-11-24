@@ -9,6 +9,11 @@ import { ConfigService } from "./ConfigService";
 import { D1Live } from "./D1Service";
 import { DrizzleLive } from "./DrizzleService";
 
+/**
+ * Handler group for authentication endpoints.
+ *
+ * @internal
+ */
 const AuthHandlers = HttpApiBuilder.group(AuthApi, "auth", (h) =>
 	h
 		.handle("signUp", handlers.handleSignUp)
@@ -20,13 +25,39 @@ const AuthHandlers = HttpApiBuilder.group(AuthApi, "auth", (h) =>
 		.handle("resetPassword", handlers.handleResetPassword),
 );
 
+/**
+ * Handler group for development/debugging endpoints.
+ *
+ * @internal
+ */
 const DevHandlers = HttpApiBuilder.group(AuthApi, "dev", (h) =>
 	h.handle("listTokens", devHandlers.handleListTokens),
 );
 
 /**
- * Build complete API layer with all dependencies
- * @param db - D1 database instance from Cloudflare Workers env
+ * Builds the complete API layer with all required dependencies.
+ *
+ * Provides a fully configured HTTP API with:
+ * - Authentication handlers (sign-up, sign-in, sign-out, session)
+ * - User management (update user, password reset)
+ * - Development utilities (token listing)
+ * - Database connections (D1 and Drizzle)
+ * - Configuration and HTTP client services
+ *
+ * @param db - The D1 database instance from Cloudflare Workers environment
+ * @returns A Layer providing the complete API
+ *
+ * @since 1.0.0
+ * @category Layers
+ *
+ * @example
+ * ```ts
+ * const AppLayer = Layer.mergeAll(
+ *   buildApiLive(env.DB),
+ *   HttpApiBuilder.middlewareCors({ allowedOrigins: ["http://localhost:4321"] }),
+ *   HttpServer.layerContext
+ * );
+ * ```
  */
 export const buildApiLive = (db: D1Database) =>
 	HttpApiBuilder.api(AuthApi).pipe(

@@ -1,3 +1,8 @@
+/**
+ * Authentication HTTP handlers for the Better Auth API.
+ *
+ * @module
+ */
 import { HttpServerRequest, HttpServerResponse } from "@effect/platform";
 import { Effect, pipe, type Schema } from "effect";
 import type {
@@ -20,6 +25,17 @@ type ResetPasswordPayload = Schema.Schema.Type<typeof ResetPasswordSchema>;
 type AuthResponse = Schema.Schema.Type<typeof AuthResponseSchema>;
 type SuccessResponse = Schema.Schema.Type<typeof SuccessSchema>;
 
+/**
+ * Handles user registration with email and password.
+ *
+ * Creates a new user account and returns session cookies.
+ *
+ * @param payload - User registration data (email, password, name)
+ * @returns Effect yielding HTTP response with session cookie
+ *
+ * @since 1.0.0
+ * @category Handlers
+ */
 export const handleSignUp = ({ payload }: { payload: SignUpPayload }) =>
 	Effect.gen(function* () {
 		const auth = yield* AuthService;
@@ -45,7 +61,6 @@ export const handleSignUp = ({ payload }: { payload: SignUpPayload }) =>
 				),
 			);
 
-		// Create JSON response and forward Set-Cookie headers
 		const setCookie = headers.get("set-cookie");
 		return yield* HttpServerResponse.json(response as AuthResponse).pipe(
 			Effect.map((jsonResponse) =>
@@ -62,6 +77,17 @@ export const handleSignUp = ({ payload }: { payload: SignUpPayload }) =>
 		);
 	});
 
+/**
+ * Handles user authentication with email and password.
+ *
+ * Validates credentials and returns session cookies on success.
+ *
+ * @param payload - Login credentials (email, password)
+ * @returns Effect yielding HTTP response with session cookie
+ *
+ * @since 1.0.0
+ * @category Handlers
+ */
 export const handleSignIn = ({ payload }: { payload: SignInPayload }) =>
 	Effect.gen(function* () {
 		const auth = yield* AuthService;
@@ -86,7 +112,6 @@ export const handleSignIn = ({ payload }: { payload: SignInPayload }) =>
 				),
 			);
 
-		// Create JSON response and forward Set-Cookie headers
 		const setCookie = headers.get("set-cookie");
 		return yield* HttpServerResponse.json(response as AuthResponse).pipe(
 			Effect.map((jsonResponse) =>
@@ -103,6 +128,16 @@ export const handleSignIn = ({ payload }: { payload: SignInPayload }) =>
 		);
 	});
 
+/**
+ * Handles user sign out.
+ *
+ * Invalidates the current session and clears cookies.
+ *
+ * @returns Effect yielding HTTP response with cleared session cookie
+ *
+ * @since 1.0.0
+ * @category Handlers
+ */
 export const handleSignOut = () =>
 	Effect.gen(function* () {
 		const auth = yield* AuthService;
@@ -122,7 +157,6 @@ export const handleSignOut = () =>
 			),
 		);
 
-		// Create JSON response and forward Set-Cookie headers
 		const setCookie = headers.get("set-cookie");
 		return yield* HttpServerResponse.json({
 			success: true,
@@ -141,6 +175,16 @@ export const handleSignOut = () =>
 		);
 	});
 
+/**
+ * Retrieves the current user session.
+ *
+ * Returns user and session data if authenticated, null otherwise.
+ *
+ * @returns Effect yielding session data or null
+ *
+ * @since 1.0.0
+ * @category Handlers
+ */
 export const handleSession = () =>
 	Effect.gen(function* () {
 		const auth = yield* AuthService;
@@ -162,6 +206,15 @@ export const handleSession = () =>
 		return response as AuthResponse;
 	});
 
+/**
+ * Handles user profile updates.
+ *
+ * @param payload - Update data (name)
+ * @returns Effect yielding updated user data
+ *
+ * @since 1.0.0
+ * @category Handlers
+ */
 export const handleUpdateUser = ({ payload }: { payload: UpdateUserPayload }) =>
 	Effect.gen(function* () {
 		const auth = yield* AuthService;
@@ -186,6 +239,17 @@ export const handleUpdateUser = ({ payload }: { payload: UpdateUserPayload }) =>
 		return response as AuthResponse;
 	});
 
+/**
+ * Initiates password reset flow.
+ *
+ * Sends a password reset email (logs to console in development).
+ *
+ * @param payload - Email address for password reset
+ * @returns Effect yielding success response
+ *
+ * @since 1.0.0
+ * @category Handlers
+ */
 export const handleForgetPassword = ({
 	payload,
 }: {
@@ -213,6 +277,15 @@ export const handleForgetPassword = ({
 		return { success: true } as SuccessResponse;
 	});
 
+/**
+ * Completes password reset with new password.
+ *
+ * @param payload - Reset token and new password
+ * @returns Effect yielding success response
+ *
+ * @since 1.0.0
+ * @category Handlers
+ */
 export const handleResetPassword = ({
 	payload,
 }: {

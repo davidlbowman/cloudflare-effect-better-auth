@@ -1,6 +1,23 @@
+/**
+ * Database schema definitions for Better Auth.
+ *
+ * Defines the Drizzle ORM schema for SQLite/D1 including:
+ * - Users and authentication
+ * - Sessions for login state
+ * - Accounts for OAuth providers
+ * - Verification tokens for password reset
+ *
+ * @module
+ */
 import { relations, sql } from "drizzle-orm";
 import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
+/**
+ * User table storing registered users.
+ *
+ * @since 1.0.0
+ * @category Tables
+ */
 export const user = sqliteTable("user", {
 	id: text("id").primaryKey(),
 	name: text("name").notNull(),
@@ -18,6 +35,12 @@ export const user = sqliteTable("user", {
 		.notNull(),
 });
 
+/**
+ * Session table storing active user sessions.
+ *
+ * @since 1.0.0
+ * @category Tables
+ */
 export const session = sqliteTable(
 	"session",
 	{
@@ -39,6 +62,14 @@ export const session = sqliteTable(
 	(table) => [index("session_userId_idx").on(table.userId)],
 );
 
+/**
+ * Account table storing OAuth provider connections.
+ *
+ * Also stores password hashes for email/password authentication.
+ *
+ * @since 1.0.0
+ * @category Tables
+ */
 export const account = sqliteTable(
 	"account",
 	{
@@ -69,6 +100,12 @@ export const account = sqliteTable(
 	(table) => [index("account_userId_idx").on(table.userId)],
 );
 
+/**
+ * Verification table storing password reset and email verification tokens.
+ *
+ * @since 1.0.0
+ * @category Tables
+ */
 export const verification = sqliteTable(
 	"verification",
 	{
@@ -87,11 +124,23 @@ export const verification = sqliteTable(
 	(table) => [index("verification_identifier_idx").on(table.identifier)],
 );
 
+/**
+ * User relations to sessions and accounts.
+ *
+ * @since 1.0.0
+ * @category Relations
+ */
 export const userRelations = relations(user, ({ many }) => ({
 	sessions: many(session),
 	accounts: many(account),
 }));
 
+/**
+ * Session relations to user.
+ *
+ * @since 1.0.0
+ * @category Relations
+ */
 export const sessionRelations = relations(session, ({ one }) => ({
 	user: one(user, {
 		fields: [session.userId],
@@ -99,6 +148,12 @@ export const sessionRelations = relations(session, ({ one }) => ({
 	}),
 }));
 
+/**
+ * Account relations to user.
+ *
+ * @since 1.0.0
+ * @category Relations
+ */
 export const accountRelations = relations(account, ({ one }) => ({
 	user: one(user, {
 		fields: [account.userId],

@@ -1,3 +1,11 @@
+/**
+ * Development/debugging HTTP handlers.
+ *
+ * These endpoints are intended for local development and testing only.
+ * They should not be exposed in production.
+ *
+ * @module
+ */
 import { HttpServerResponse } from "@effect/platform";
 import { desc } from "drizzle-orm";
 import { Effect, type Schema } from "effect";
@@ -9,14 +17,20 @@ import { DrizzleService } from "../services/DrizzleService";
 type TokensResponse = Schema.Schema.Type<typeof TokensResponseSchema>;
 
 /**
- * Dev-only endpoint to list recent verification tokens
- * Useful for testing password reset without email
+ * Lists recent verification tokens from the database.
+ *
+ * Useful for testing password reset flow without email delivery.
+ * Returns the 10 most recent tokens ordered by creation date.
+ *
+ * @returns Effect yielding HTTP response with token list
+ *
+ * @since 1.0.0
+ * @category Handlers
  */
 export const handleListTokens = () =>
 	Effect.gen(function* () {
 		const db = yield* DrizzleService;
 
-		// Get the 10 most recent tokens
 		const tokens = yield* Effect.tryPromise(() =>
 			db
 				.select()

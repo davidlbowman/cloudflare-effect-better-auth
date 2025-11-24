@@ -5,7 +5,23 @@ import { ConfigService } from "./ConfigService";
 import { DrizzleService } from "./DrizzleService";
 
 /**
- * AuthService - Better Auth instance
+ * Service providing Better Auth authentication functionality.
+ *
+ * Wraps the Better Auth library to provide email/password authentication
+ * with session management via the Effect ecosystem.
+ *
+ * @since 1.0.0
+ * @category Services
+ *
+ * @example
+ * ```ts
+ * const program = Effect.gen(function* () {
+ *   const auth = yield* AuthService;
+ *   const result = yield* Effect.tryPromise(() =>
+ *     auth.api.signInEmail({ body: { email, password } })
+ *   );
+ * });
+ * ```
  */
 export class AuthService extends Context.Tag("AuthService")<
 	AuthService,
@@ -13,7 +29,25 @@ export class AuthService extends Context.Tag("AuthService")<
 >() {}
 
 /**
- * AuthLive - Create AuthService layer with Better Auth
+ * Creates an AuthService layer with Better Auth configured.
+ *
+ * Configures Better Auth with:
+ * - Drizzle adapter for D1/SQLite database
+ * - Email/password authentication enabled
+ * - Email verification disabled (for development)
+ * - Console-based password reset emails (for development)
+ *
+ * @since 1.0.0
+ * @category Layers
+ *
+ * @example
+ * ```ts
+ * const appLayer = Layer.mergeAll(
+ *   AuthLive,
+ *   DrizzleLive(env.DB),
+ *   ConfigService.Default
+ * );
+ * ```
  */
 export const AuthLive = Layer.effect(
 	AuthService,
@@ -30,8 +64,8 @@ export const AuthLive = Layer.effect(
 			emailAndPassword: {
 				enabled: true,
 				requireEmailVerification: false,
+				/** Logs password reset links to console for local development */
 				sendResetPassword: async ({ user, url }) => {
-					// Mock email sender for local dev - just log to console
 					console.log(`[DEV] Password reset for ${user.email}: ${url}`);
 				},
 			},
