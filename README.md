@@ -4,6 +4,22 @@ A learning project exploring [Better Auth](https://www.better-auth.com/) integra
 
 > **Note:** This is not production-ready code. It's a personal project I built to learn these technologies. Use at your own risk.
 
+## Architectural Friction: What I Learned
+
+This project wraps Better Auth inside Effect's HttpApi layer. While the basic auth flows (sign-up, sign-in, password reset) work, I encountered significant friction when attempting to implement more advanced features like **Two-Factor Authentication (2FA)**.
+
+### The Core Problem
+
+**Better Auth wants to own the HTTP layer.** It's designed to handle requests/responses directly, manage cookies itself, and work same-origin where cookies "just work." When you wrap it in Effect's HttpApi:
+
+1. **Cookie forwarding becomes manual** - You must intercept `Set-Cookie` headers from Better Auth and re-attach them to Effect's response. Multiple cookies require parsing and using Effect's cookie API correctly.
+
+2. **Cross-origin complexity** - Running the API (`:8787`) and web (`:4321`) on different ports creates cross-origin issues. `SameSite=None` cookies require `Secure`, which requires HTTPS, which requires tunneling or mkcert in development.
+
+3. **2FA's cookie-based pending session** - Better Auth stores 2FA state in a cookie, not the database. This cookie doesn't survive cross-origin scenarios without significant configuration (same-origin proxy, HTTPS, correct cookie attributes).
+
+4. **Code quality degrades** - What starts as clean Effect handlers becomes ugly cookie-parsing boilerplate to bridge the two systems.
+
 ## Stack
 
 - **API:** Cloudflare Workers + Effect HttpApi + Better Auth + Drizzle + D1
@@ -127,6 +143,7 @@ wrangler pages deploy dist --project-name=your-project-web --branch=main
 ## Password Reset (Demo)
 
 This demo doesn't include email integration. The "Forgot password?" flow works by:
+
 1. Generating a reset token in the database
 2. Fetching the token via `/dev/tokens` endpoint
 3. Automatically resetting the password to `Reset!1234`
