@@ -3,7 +3,7 @@ import { FetchHttpClient, HttpApiBuilder } from "@effect/platform";
 import { Layer } from "effect";
 import { AuthApi } from "../../../shared/src/api/AuthApi";
 import * as handlers from "../handlers/authHandlers";
-import * as devHandlers from "../handlers/devHandlers";
+import * as tokenHandlers from "../handlers/tokenHandlers";
 import { AuthLive } from "./AuthService";
 import { ConfigService } from "./ConfigService";
 import { D1Live } from "./D1Service";
@@ -26,12 +26,12 @@ const AuthHandlers = HttpApiBuilder.group(AuthApi, "auth", (h) =>
 );
 
 /**
- * Handler group for development/debugging endpoints.
+ * Handler group for token endpoints (password reset tokens, etc).
  *
  * @internal
  */
-const DevHandlers = HttpApiBuilder.group(AuthApi, "dev", (h) =>
-	h.handle("listTokens", devHandlers.handleListTokens),
+const TokenHandlers = HttpApiBuilder.group(AuthApi, "dev", (h) =>
+	h.handle("listTokens", tokenHandlers.handleListTokens),
 );
 
 /**
@@ -62,7 +62,7 @@ const DevHandlers = HttpApiBuilder.group(AuthApi, "dev", (h) =>
 export const buildApiLive = (db: D1Database) =>
 	HttpApiBuilder.api(AuthApi).pipe(
 		Layer.provide(AuthHandlers),
-		Layer.provide(DevHandlers),
+		Layer.provide(TokenHandlers),
 		Layer.provide(AuthLive),
 		Layer.provide(DrizzleLive(db)),
 		Layer.provide(D1Live(db)),

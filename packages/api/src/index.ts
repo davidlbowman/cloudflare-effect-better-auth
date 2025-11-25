@@ -19,6 +19,7 @@ type Env = {
 	DB: D1Database;
 	BETTER_AUTH_SECRET: string;
 	BETTER_AUTH_URL: string;
+	WEB_URL: string;
 };
 
 export default {
@@ -40,7 +41,7 @@ export default {
 		const AppLayer = Layer.mergeAll(
 			buildApiLive(env.DB),
 			HttpApiBuilder.middlewareCors({
-				allowedOrigins: ["http://localhost:4321"],
+				allowedOrigins: ["http://localhost:4321", env.WEB_URL],
 				credentials: true,
 			}),
 			HttpServer.layerContext,

@@ -38,6 +38,8 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .dev.vars
 .mf/
 worker/
+wrangler.toml
+packages/web/wrangler.toml
 
 # Local Effect-TS documentation
 .claude/effect/

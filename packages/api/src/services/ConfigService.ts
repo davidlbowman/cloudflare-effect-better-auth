@@ -26,14 +26,14 @@ export class ConfigService extends Effect.Service<ConfigService>()(
 		effect: Effect.gen(function* () {
 			const betterAuthSecret = yield* Config.redacted("BETTER_AUTH_SECRET");
 			const betterAuthUrl = yield* Config.string("BETTER_AUTH_URL");
+			const webUrl = yield* Config.string("WEB_URL");
 
 			return {
 				auth: {
-					/** Better Auth secret key (redacted for security) */
 					secret: betterAuthSecret,
-					/** Better Auth base URL */
 					url: betterAuthUrl,
 				},
+				webUrl,
 			};
 		}),
 	},

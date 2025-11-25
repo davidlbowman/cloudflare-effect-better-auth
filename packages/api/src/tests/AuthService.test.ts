@@ -10,6 +10,7 @@ describe("AuthService", () => {
 			new Map([
 				["BETTER_AUTH_SECRET", "test-secret-key-minimum-32-chars-long"],
 				["BETTER_AUTH_URL", "http://localhost:8787"],
+				["WEB_URL", "http://localhost:4321"],
 			]),
 		);
 

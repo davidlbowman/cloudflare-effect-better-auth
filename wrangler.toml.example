@@ -6,11 +6,13 @@ compatibility_flags = ["nodejs_compat"]
 [observability]
 enabled = true
 
-# D1 Database binding for local development
+# D1 Database binding
+# Create your D1 database: wrangler d1 create cloudflare-effect-better-auth
+# Then copy the database_id from the output
 [[d1_databases]]
 binding = "DB"
 database_name = "cloudflare-effect-better-auth"
-database_id = "local"
+database_id = "<YOUR_D1_DATABASE_ID>"
 
 # Secrets (set via: wrangler secret put SECRET_NAME)
 # For local development, use .dev.vars file (already in .gitignore)
@@ -18,3 +20,4 @@ database_id = "local"
 # Required secrets:
 # - BETTER_AUTH_SECRET
 # - BETTER_AUTH_URL
+# - WEB_URL

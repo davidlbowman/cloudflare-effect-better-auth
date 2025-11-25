@@ -1,8 +1,9 @@
 /**
- * Development/debugging HTTP handlers.
+ * Token HTTP handlers for password reset flow.
  *
- * These endpoints are intended for local development and testing only.
- * They should not be exposed in production.
+ * Since this demo doesn't have email integration, this endpoint
+ * allows fetching reset tokens directly from the database.
+ * In production, you'd send tokens via email instead.
  *
  * @module
  */
